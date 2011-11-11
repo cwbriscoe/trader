@@ -1,0 +1,11 @@
+trader.depend
+trader.layout
+CMakeCache.txt
+CMakeFiles/*
+log/*
+bkup/*
+bin/*
+*.log
+Makefile
+profile
+*.cmake
