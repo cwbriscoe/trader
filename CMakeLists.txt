@@ -1,16 +1,28 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
 
 #Miscellaneous flags for development
-SET(CMAKE_VERBOSE_MAKEFILE TRUE)
+SET(CMAKE_VERBOSE_MAKEFILE FALSE)
 SET(CMAKE_BUILD_TYPE Release)
 #SET(CMAKE_BUILD_TYPE Debug)
-SET(CMAKE_C_COMPILER "clang")
-SET(CMAKE_CXX_COMPILER "clang++")
-#SET(CMAKE_CXX_COMPILER "gcc")
+#SET(CMAKE_C_COMPILER "clang")
+#SET(CMAKE_CXX_COMPILER "clang++")
+SET(CMAKE_C_COMPILER "gcc")
+SET(CMAKE_CXX_COMPILER "g++")
 #SET(CMAKE_CXX_COMPILER "c++-analyzer")
 
 project(TRADER)
+
+FIND_PACKAGE(FLTK REQUIRED)
+FIND_PACKAGE(OpenGL REQUIRED)
+
+if( FLTK_FOUND )
+  include_directories(${FLTK_INCLUDE_DIR})
+else(FLTK_FOUND)
+  message(FATAL_ERROR "Could not find FLTK")
+endif(FLTK_FOUND)
+
 include_directories(${TRADER_SOURCE_DIR}/src)
+#include_directories(/local/include/)
 
 MESSAGE( STATUS )
 MESSAGE( STATUS "--------------------------------------------------------------------" )
@@ -28,11 +40,10 @@ MESSAGE( STATUS "---------------------------------------------------------------
 MESSAGE( STATUS )
 
 #Set compiler and linker settings
-set(CMAKE_CXX_FLAGS_DEBUG "-O2 -march=native -fno-rtti -fno-exceptions -fomit-frame-pointer -DENGINE_DEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "-O2 -march=native -fno-rtti -fno-exceptions -fomit-frame-pointer -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "-O2 -march=native -fno-rtti -fno-exceptions -fomit-frame-pointer")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -march=native -fno-rtti -fomit-frame-pointer -DNDEBUG -DWIN32")
 add_definitions(-std=c++0x)
-set(CMAKE_EXE_LINKER_FLAGS "-s -lpthread")
-#set(CMAKE_EXE_LINKER_FLAGS "-lpthread")
+set(CMAKE_EXE_LINKER_FLAGS "-s")
 
 if(MSVC)
   # Force to always compile with W4
@@ -43,21 +54,18 @@ if(MSVC)
   endif()
 elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
   # Update if necessary
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__GXX_EXPERIMENTAL_CXX0X__ -Wall -Wextra -Wno-ignored-qualifiers -pedantic -pthread")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__GXX_EXPERIMENTAL_CXX0X__ -Wall -Wextra -Wno-ignored-qualifiers -pedantic -pthreads")
 endif()
 
 set(CLIENT
-src/client_socket_base.cpp
-src/client_socket.cpp
+  #src/socket/client_socket_base.cpp
+  #src/socket/client_socket.cpp
+  src/gui/main.cpp
+  src/cb/thread.cpp
+  src/core/test_thread.cpp
 )
 
-#OpenGL Link Libraries
-#find_library(GL GL)
-#find_library(GLU GLU)
-
 #Targets
-#add_executable(./testit ${TESTIT})
-add_executable(./bin/client ${CLIENT})
+add_executable(./bin/trader ${CLIENT})
+target_link_libraries(./bin/trader ${FLTK_LIBRARIES})
 
-#target_link_libraries(./uci rt profiler)
-#target_link_libraries(./testit rt profiler)
