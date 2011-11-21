@@ -40,7 +40,7 @@ MESSAGE( STATUS "---------------------------------------------------------------
 MESSAGE( STATUS )
 
 #Set compiler and linker settings
-set(CMAKE_CXX_FLAGS_DEBUG "-O2 -march=native -fno-rtti -fno-exceptions -fomit-frame-pointer")
+set(CMAKE_CXX_FLAGS_DEBUG "-O2 -march=native -fno-rtti -fno-exceptions -fomit-frame-pointer -DWIN32")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -march=native -fno-rtti -fomit-frame-pointer -DNDEBUG -DWIN32")
 add_definitions(-std=c++0x)
 set(CMAKE_EXE_LINKER_FLAGS "-s")
@@ -54,14 +54,15 @@ if(MSVC)
   endif()
 elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
   # Update if necessary
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__GXX_EXPERIMENTAL_CXX0X__ -Wall -Wextra -Wno-ignored-qualifiers -pedantic -pthreads")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__GXX_EXPERIMENTAL_CXX0X__ -Wfatal-errors -Wall -Wextra -Wno-ignored-qualifiers -pedantic")
 endif()
 
 set(CLIENT
   #src/socket/client_socket_base.cpp
   #src/socket/client_socket.cpp
   src/gui/main.cpp
-  src/cb/thread.cpp
+  src/cb/winthread.cpp
+  #src/cb/thread.cpp
   src/core/test_thread.cpp
 )
 

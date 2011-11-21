@@ -1,26 +1,7 @@
-#include "thread.h"
+#include "thread.hpp"
 
-namespace cb {
-
-Thread::Thread() : mStop() {
-}
-
-Thread::~Thread() {
-  this->stop();
-}
-
-void Thread::start() {
-  mThread = std::thread(&Thread::Run, *this);
-}
-
-void Thread::stop() {
-  mStop = true;
-  mThread.join();
-}
-
-void Thread::run() {
-  while (!mStop) {
-    this->loop();
-  }
-}
-}
+#ifdef WIN32
+  #include "winthread.cpp"
+#else
+  #include "stdthread.cpp"
+#endif
