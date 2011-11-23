@@ -38,20 +38,23 @@ public:
 	void stop();
 	void join();
 	void shutdown();
+  void threadEnded();
 
-	unsigned int threadId() const;
-	
+	unsigned int threadId();
+
 protected:
 	bool canRun();
 	virtual void run() = 0;
 
 private:
+  void _run();
 	static unsigned __stdcall threadFunc(void *args);
-	
+
 	HANDLE mThread;
 	unsigned mThreadId;
 	volatile bool mCanRun;
 	volatile bool mStopped;
+	volatile bool mIsRunning;
 	Mutex mMutex;
 };
 
