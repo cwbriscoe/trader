@@ -1,1 +1,1 @@
--std=c++0x -c -D__GXX_EXPERIMENTAL_CXX0X__ -I/c/Jts/Shared -Isrc
+-std=c++0x -c -D__GXX_EXPERIMENTAL_CXX0X__ -Isrc -Isrc/cb -Isrc/core -Isrc/gui -I/user/local/include/twsapi
