@@ -69,7 +69,7 @@ void Thread::_run() {
   _endthreadex(0);
 }
 
-unsigned __stdcall Thread::threadFunc(void *args) {
+unsigned Thread::threadFunc(void *args) {
 //unsigned Thread::threadFunc(void *args) {
 	Thread* pThread = reinterpret_cast<Thread*>(args);
 

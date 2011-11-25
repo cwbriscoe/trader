@@ -31,8 +31,8 @@ if(MINGW)
 endif()
 
 #Set compiler and linker settings
-set(CMAKE_CXX_FLAGS_DEBUG "-O2 -march=native -fno-rtti -fno-exceptions -fomit-frame-pointer -DWIN32")
-set(CMAKE_CXX_FLAGS_RELEASE "-O2 -march=native -fno-rtti -fomit-frame-pointer -DNDEBUG -DWIN32")
+set(CMAKE_CXX_FLAGS_DEBUG "-O2 -march=native -fno-rtti -fno-exceptions -fomit-frame-pointer")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -march=native -fno-rtti -fomit-frame-pointer -DNDEBUG")
 add_definitions(-std=c++0x)
 set(CMAKE_EXE_LINKER_FLAGS "-s")
 
@@ -45,15 +45,15 @@ if(MSVC)
   endif()
 elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
   # Update if necessary
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__GXX_EXPERIMENTAL_CXX0X__ -Wfatal-errors -Wall -Wextra -Wno-ignored-qualifiers -pedantic")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIB_USE_STD_STRING -D__GXX_EXPERIMENTAL_CXX0X__ -Wfatal-errors -Wall -Wextra -Wno-ignored-qualifiers -pedantic -pthread")
 endif()
 
 set(CLIENT
-  #src/socket/client_socket_base.cpp
-  #src/socket/client_socket.cpp
   src/gui/main.cpp
-  src/cb/winthread.cpp
-  #src/cb/thread.cpp
+  src/twsapi/PosixTestClient.cpp
+  src/twsapi/EClientSocketBase.cpp
+  src/twsapi/EPosixClientSocket.cpp
+  src/cb/thread.cpp
   src/core/test_thread.cpp
 )
 
@@ -76,14 +76,14 @@ MESSAGE( STATUS "Change a value with: cmake -D<Variable>=<Value>" )
 MESSAGE( STATUS "--------------------------------------------------------------------" )
 MESSAGE( STATUS "TRADER_SOURCE_DIR: " ${TRADER_SOURCE_DIR} )
 MESSAGE( STATUS "FLTK_INCLUDE_DIR: " ${FLTK_INCLUDE_DIR} )
-MESSAGE( STATUS "FLTK_LIBRARIES: " ${FLTK_LIBRARIES} )
+#MESSAGE( STATUS "FLTK_LIBRARIES: " ${FLTK_LIBRARIES} )
 MESSAGE( STATUS "FLTK_BASE_LIBRARY: " ${FLTK_BASE_LIBRARY} )
 MESSAGE( STATUS "FLTK_FORMS_LIBRARY: " ${FLTK_FORMS_LIBRARY} )
 MESSAGE( STATUS "FLTK_GL_LIBRARY: " ${FLTK_GL_LIBRARY} )
 MESSAGE( STATUS "FLTK_IMAGES_LIBRARY: " ${FLTK_IMAGES_LIBRARY} )
 MESSAGE( STATUS "TWSAPI_LIBRARIES: " ${TWSAPI_LIBRARIES} )
 MESSAGE( STATUS "--------------------------------------------------------------------" )
-MESSAGE( STATUS "CMAKE_CXX_FLAGS: " ${CMAKE_CXX_FLAGS} )
+#MESSAGE( STATUS "CMAKE_CXX_FLAGS: " ${CMAKE_CXX_FLAGS} )
 MESSAGE( STATUS "--------------------------------------------------------------------" )
 MESSAGE( STATUS )
 

@@ -38,7 +38,6 @@ public:
 	void stop();
 	void join();
 	void shutdown();
-  void threadEnded();
 
 	unsigned int threadId();
 
