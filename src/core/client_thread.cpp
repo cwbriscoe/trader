@@ -33,6 +33,7 @@ void TestThread::run() {
     if (!mConnected)
       this->connect("127.0.0.1", 4001, 1);
 	  this->processMessages();
+    this->sleep(0);
   }
   this->disconnect();
 }
@@ -120,7 +121,12 @@ void TestThread::processMessages() {
 
 		FD_CLR(mpClient->fd(), &errorSet);
 
-		int ret = select(mpClient->fd() + 1, &readSet, &writeSet, &errorSet, &tval);
+    //make timeout non-blocking with a zero timeout
+	  struct timeval timeout;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 0;
+
+		int ret = select(mpClient->fd() + 1, &readSet, &writeSet, &errorSet, &timeout);
 
 		if(ret == 0)   // timeout
 			return;

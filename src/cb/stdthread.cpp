@@ -14,6 +14,11 @@ thread::id Thread::threadID() const {
   return mThread.get_id();
 }
 
+void Thread::shutdown() {
+  this->stop();
+  this->join();
+}
+
 void Thread::join() {
   if (mThread.joinable())
 	  mThread.join();

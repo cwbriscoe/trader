@@ -29,6 +29,7 @@ public:
 	void start();
 	void stop();
 	void join();
+	void shutdown();
 	void sleep(const unsigned ms) const;
 
 protected:
