@@ -2068,7 +2068,9 @@ int EClientSocketBase::processMsg(const char*& beginPtr, const char* endPtr)
 							break;
 						case LAST:
 							sizeTickType = LAST_SIZE;
-						break;
+						  break;
+            default:
+              break;
 					}
 					if( sizeTickType != NOT_SET)
 						m_pEWrapper->tickSize( tickerId, sizeTickType, size);

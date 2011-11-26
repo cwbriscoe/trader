@@ -18,7 +18,7 @@ inline bool IsEmpty(const IBString& str)
 #else
 	return str.IsEmpty();
 #endif
-};
+}
 
 inline void Empty(IBString& str)
 {
@@ -27,7 +27,7 @@ inline void Empty(IBString& str)
 #else
 	str.Empty();
 #endif
-};
+}
 
 inline bool Compare(IBString str, const char* strToCompare)
 {
@@ -36,7 +36,7 @@ inline bool Compare(IBString str, const char* strToCompare)
 #else
 	return str.CompareNoCase(strToCompare);
 #endif
-};
+}
 
 inline bool Compare(IBString str, IBString strToCompare)
 {
@@ -45,7 +45,7 @@ inline bool Compare(IBString str, IBString strToCompare)
 #else
 	return str.CompareNoCase(strToCompare);
 #endif
-};
+}
 
 inline double Atof(IBString str)
 {
@@ -54,7 +54,7 @@ inline double Atof(IBString str)
 #else
 	return atof(str);
 #endif
-};
+}
 
 inline int Atoi(IBString str)
 {
@@ -63,7 +63,7 @@ inline int Atoi(IBString str)
 #else
 	return atoi(str);
 #endif
-};
+}
 
 #endif
 

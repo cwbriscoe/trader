@@ -16,6 +16,9 @@ int main(int argc, char **argv) {
   box->labeltype(FL_SHADOW_LABEL);
   window->end();
   window->show(argc, argv);
-  return Fl::run();
+  auto ret = Fl::run();
+  thread1.stop();
+  thread1.join();
+  return ret;
 }
 
