@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 2.8)
 
 #Miscellaneous flags for development
 SET(CMAKE_VERBOSE_MAKEFILE FALSE)
-SET(CMAKE_BUILD_TYPE Release)
-#SET(CMAKE_BUILD_TYPE Debug)
+#SET(CMAKE_BUILD_TYPE Release)
+SET(CMAKE_BUILD_TYPE Debug)
 #SET(CMAKE_C_COMPILER "clang")
 #SET(CMAKE_CXX_COMPILER "clang++")
 SET(CMAKE_C_COMPILER "gcc")
@@ -31,10 +31,10 @@ if(MINGW)
 endif()
 
 #Set compiler and linker settings
-set(CMAKE_CXX_FLAGS_DEBUG "-O2 -march=native -fno-rtti -fno-exceptions -fomit-frame-pointer")
+set(CMAKE_CXX_FLAGS_DEBUG "-O2 -march=native -fno-rtti -fomit-frame-pointer")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -march=native -fno-rtti -fomit-frame-pointer -DNDEBUG")
 add_definitions(-std=c++0x)
-set(CMAKE_EXE_LINKER_FLAGS "-s")
+#set(CMAKE_EXE_LINKER_FLAGS "-s")
 
 if(MSVC)
   # Force to always compile with W4
@@ -49,12 +49,13 @@ elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 set(CLIENT
-  src/gui/main.cpp
   src/twsapi/PosixTestClient.cpp
   src/twsapi/EClientSocketBase.cpp
   src/twsapi/EPosixClientSocket.cpp
   src/cb/thread.cpp
-  src/core/test_thread.cpp
+  src/core/transactions.cpp
+  src/core/client_thread.cpp
+  src/gui/main.cpp
 )
 
 #Targets

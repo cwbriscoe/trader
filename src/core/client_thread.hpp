@@ -1,9 +1,10 @@
-#ifndef TEST_THREAD_HPP
-#define TEST_THREAD_HPP
+#ifndef CLIENT_THREAD_HPP
+#define CLIENT_THREAD_HPP
 
-#include "cb/thread.hpp" 
-#include "twsapi/EWrapper.h"
 #include <memory>
+#include "twsapi/EWrapper.h"
+#include "cb/thread.hpp" 
+#include "transactions.hpp"
 
 class EPosixClientSocket;
 
@@ -21,21 +22,34 @@ enum State {
 
 namespace cb {
 
-class TestThread : public Thread, EWrapper {
+class ClientThread : public Thread, EWrapper {
 public:
-  TestThread();
-  virtual ~TestThread();
+  ClientThread();
+  virtual ~ClientThread();
 
 	void processMessages();
 	bool connect(const char * host, unsigned int port, int clientId = 0);
 	void disconnect();
 	bool isConnected() const;
+
+protected:
+  virtual void run();
     
 private:
 	void reqCurrentTime();
 	void tickRequest();
 	void placeOrder();
 	void cancelOrder();
+
+  void execute();
+
+	std::auto_ptr<EPosixClientSocket> mpClient;
+  bool mConnected;
+	State mState;
+	time_t mSleepDeadline;
+	OrderId mOrderId;
+  RequestQueue mRequestQueue;
+  ResultQueue mResultQueue;
 
 public:
 	//Events
@@ -127,19 +141,7 @@ public:
 	void deltaNeutralValidation(int reqId, const UnderComp& underComp);
 
 	void tickSnapshotEnd(int reqId);
-
-protected:
-  virtual void run();
-    
-private:
-  void execute();
-
-	std::auto_ptr<EPosixClientSocket> mpClient;
-  bool mConnected;
-	State mState;
-	time_t mSleepDeadline;
-	OrderId mOrderId;
 };
 
 }
-#endif //TEST_THREAD_HPP
+#endif //CLIENT_THREAD_HPP

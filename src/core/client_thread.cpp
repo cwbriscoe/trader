@@ -1,4 +1,4 @@
-#include "test_thread.hpp"
+#include "client_thread.hpp"
 #include <iostream>
 #include "twsapi/EPosixClientSocket.h"
 #include "twsapi/Contract.h"
@@ -12,7 +12,7 @@ using std::endl;
 const int PING_DEADLINE = 2; // seconds
 const int SLEEP_BETWEEN_PINGS = 30; // seconds
 
-TestThread::TestThread()
+ClientThread::ClientThread()
   : Thread() 
 	, mpClient(new EPosixClientSocket(this))
   , mConnected(false)
@@ -21,24 +21,30 @@ TestThread::TestThread()
 	, mOrderId(0) {
 }
 
-TestThread::~TestThread() {
+ClientThread::~ClientThread() {
 }
 
 /******************************************************************************/
 /** Methods                                                                  **/
 /******************************************************************************/
 
-void TestThread::run() {
+void ClientThread::run() {
+  TickRqstPtr ptr = TickRqst::create();
+  ptr->symbol = "MSFT";
+  mRequestQueue.push(ptr);
+
   while (this->canRun()) {
     if (!mConnected)
       this->connect("127.0.0.1", 4001, 1);
-	  this->processMessages();
-    this->sleep(0);
+    else {
+	    this->processMessages();
+      this->sleep(0);
+    }
   }
   this->disconnect();
 }
 
-bool TestThread::connect(const char *host, unsigned int port, int clientId) {
+bool ClientThread::connect(const char *host, unsigned int port, int clientId) {
   cout << "client #" << clientId << " attempting to connect to " << host
        << ":" << port << endl;
 
@@ -48,22 +54,25 @@ bool TestThread::connect(const char *host, unsigned int port, int clientId) {
       this->sleep(1000); //1sec
   }
 
-  cout << "connected" << endl;
+  if (mConnected)
+    cout << "connected" << endl;
 
   return true;
 }
 
-void TestThread::disconnect() {
-	mpClient->eDisconnect();
-  mConnected = false;
-  cout << "disconnected" << endl;
+void ClientThread::disconnect() {
+  if (mConnected) {
+	  mpClient->eDisconnect();
+    mConnected = false;
+    cout << "disconnected" << endl;
+  }
 }
 
-bool TestThread::isConnected() const {
+bool ClientThread::isConnected() const {
 	return mpClient->isConnected();
 }
 
-void TestThread::processMessages() {
+void ClientThread::processMessages() {
 	fd_set readSet, writeSet, errorSet;
 
 	struct timeval tval;
@@ -162,7 +171,7 @@ void TestThread::processMessages() {
 	}
 }
 
-void TestThread::reqCurrentTime() {
+void ClientThread::reqCurrentTime() {
   cout << "requesting current time" << endl;
 
 	// set ping deadline to "now + n seconds"
@@ -173,7 +182,7 @@ void TestThread::reqCurrentTime() {
 	mpClient->reqCurrentTime();
 }
 
-void TestThread::tickRequest() {
+void ClientThread::tickRequest() {
 	Contract contract;
   const char* stock_tick_types = "100,101,104,105,106,107,125,165,166,225,232,221,233,236,258,47,291,293,294,295,318,370,370,377,381,384,384,387,388,391,407,411";
 
@@ -188,7 +197,7 @@ void TestThread::tickRequest() {
   mpClient->reqMktData(1, contract, stock_tick_types, false);
 }
 
-void TestThread::placeOrder() {
+void ClientThread::placeOrder() {
 	Contract contract;
 	Order order;
 
@@ -208,7 +217,7 @@ void TestThread::placeOrder() {
 	mpClient->placeOrder(mOrderId, contract, order);
 }
 
-void TestThread::cancelOrder() {
+void ClientThread::cancelOrder() {
   cout << "cancelling order id " << mOrderId << endl;
 	mState = ST_CANCELORDER_ACK;
 	mpClient->cancelOrder(mOrderId);
@@ -217,7 +226,7 @@ void TestThread::cancelOrder() {
 /******************************************************************************/
 /** Implemented EWrapper Events                                              **/
 /******************************************************************************/
-void TestThread::orderStatus( OrderId orderId, const IBString &status,
+void ClientThread::orderStatus( OrderId orderId, const IBString &status,
 int filled, int remaining, double avgFillPrice, int permId, int parentId,
 double lastFillPrice, int clientId, const IBString& whyHeld) {
 	if (orderId == mOrderId) {
@@ -229,12 +238,12 @@ double lastFillPrice, int clientId, const IBString& whyHeld) {
 	}
 }
 
-void TestThread::nextValidId(OrderId orderId) {
+void ClientThread::nextValidId(OrderId orderId) {
 	mOrderId = orderId;
 	mState = ST_TICKREQ;
 }
 
-void TestThread::currentTime(long time) {
+void ClientThread::currentTime(long time) {
 	if (mState == ST_PING_ACK) {
 		time_t t = (time_t)time;
 		struct tm * timeinfo = localtime (&t);
@@ -247,7 +256,7 @@ void TestThread::currentTime(long time) {
 	}
 }
 
-void TestThread::error(const int id, const int errorCode, const IBString errorString) {
+void ClientThread::error(const int id, const int errorCode, const IBString errorString) {
   cout << "ERROR " << errorCode << ": " << errorString << endl;
 	if(id == -1 && errorCode == 1100) // if "Connectivity between IB and TWS has been lost"
 		disconnect();
@@ -256,149 +265,149 @@ void TestThread::error(const int id, const int errorCode, const IBString errorSt
 /******************************************************************************/
 /** Unimplemented EWrapper Events                                            **/
 /******************************************************************************/
-void TestThread::tickPrice(TickerId tickerId, TickType field, double price, int canAutoExecute) {
+void ClientThread::tickPrice(TickerId tickerId, TickType field, double price, int canAutoExecute) {
   cout << "tickPrice: " << "id:" << tickerId << " type:" << field
        << " price:" << price << " auto:" << canAutoExecute << endl;
 }
 
-void TestThread::tickSize(TickerId tickerId, TickType field, int size) {
+void ClientThread::tickSize(TickerId tickerId, TickType field, int size) {
   cout << "tickSize: " << "id:" << tickerId << " type:" << field
        << " size:" << size << endl;
 }
 
-void TestThread::tickOptionComputation(TickerId tickerId, TickType tickType,
+void ClientThread::tickOptionComputation(TickerId tickerId, TickType tickType,
 double impliedVol, double delta, double optPrice, double pvDividend,
 double gamma, double vega, double theta, double undPrice) {
   cout << "tickOptionComputation:" << endl;
 }
 
-void TestThread::tickGeneric(TickerId tickerId, TickType tickType, double value) {
+void ClientThread::tickGeneric(TickerId tickerId, TickType tickType, double value) {
   cout << "tickGeneric:" << endl;
 }
 
-void TestThread::tickString(TickerId tickerId, TickType tickType, const IBString& value) {
+void ClientThread::tickString(TickerId tickerId, TickType tickType, const IBString& value) {
   cout << "tickString: " << "id:" << tickerId << " type:" << tickType
        << " value:" << value << endl;
 }
 
-void TestThread::tickEFP(TickerId tickerId, TickType tickType, double basisPoints,
+void ClientThread::tickEFP(TickerId tickerId, TickType tickType, double basisPoints,
 const IBString& formattedBasisPoints, double totalDividends, int holdDays,
 const IBString& futureExpiry, double dividendImpact, double dividendsToExpiry) {
   cout << "tickEFP:" << endl;
 }
 
-void TestThread::openOrder(OrderId orderId, const Contract&, const Order&, const OrderState&) {
+void ClientThread::openOrder(OrderId orderId, const Contract&, const Order&, const OrderState&) {
   cout << "openOrder:" << endl;
 }
 
-void TestThread::openOrderEnd() {
+void ClientThread::openOrderEnd() {
   cout << "openOrderEnd:" << endl;
 }
 
-void TestThread::winError(const IBString &str, int lastError) {
+void ClientThread::winError(const IBString &str, int lastError) {
   cout << "winError:" << endl;
 }
 
-void TestThread::connectionClosed() {
+void ClientThread::connectionClosed() {
   cout << "connectionClosed:" << endl;
 }
 
-void TestThread::updateAccountValue(const IBString& key, const IBString& val, 
+void ClientThread::updateAccountValue(const IBString& key, const IBString& val, 
 const IBString& currency, const IBString& accountName) {
   cout << "updateAccountValue:" << endl;
 }
 
-void TestThread::updatePortfolio(const Contract& contract, int position,
+void ClientThread::updatePortfolio(const Contract& contract, int position,
 double marketPrice, double marketValue, double averageCost,
 double unrealizedPNL, double realizedPNL, const IBString& accountName) {
   cout << "updatePortfolio:" << endl;
 }
 
-void TestThread::updateAccountTime(const IBString& timeStamp) {
+void ClientThread::updateAccountTime(const IBString& timeStamp) {
   cout << "updateAccountTime:" << endl;
 }
 
-void TestThread::accountDownloadEnd(const IBString& accountName) {
+void ClientThread::accountDownloadEnd(const IBString& accountName) {
   cout << "accountDownloadEnd:" << endl;
 }
 
-void TestThread::contractDetails(int reqId, const ContractDetails& contractDetails) {
+void ClientThread::contractDetails(int reqId, const ContractDetails& contractDetails) {
   cout << "contractDetails:" << endl;
 }
 
-void TestThread::bondContractDetails(int reqId, const ContractDetails& contractDetails) {
+void ClientThread::bondContractDetails(int reqId, const ContractDetails& contractDetails) {
   cout << "bondContractDetails:" << endl;
 }
 
-void TestThread::contractDetailsEnd(int reqId) {
+void ClientThread::contractDetailsEnd(int reqId) {
   cout << "contractDetailsEnd:" << endl;
 }
 
-void TestThread::execDetails(int reqId, const Contract& contract, const Execution& execution) {
+void ClientThread::execDetails(int reqId, const Contract& contract, const Execution& execution) {
   cout << "execDetails:" << endl;
 }
 
-void TestThread::execDetailsEnd(int reqId) {
+void ClientThread::execDetailsEnd(int reqId) {
   cout << "execDetailsEnd:" << endl;
 }
 
-void TestThread::updateMktDepth(TickerId id, int position, int operation, int side,
+void ClientThread::updateMktDepth(TickerId id, int position, int operation, int side,
 double price, int size) {
   cout << "updateMktDepth:" << endl;
 }
 
-void TestThread::updateMktDepthL2(TickerId id, int position, IBString marketMaker,
+void ClientThread::updateMktDepthL2(TickerId id, int position, IBString marketMaker,
 int operation, int side, double price, int size) {
   cout << "updateMktDepthL2:" << endl;
 }
 
-void TestThread::updateNewsBulletin(int msgId, int msgType, const IBString& newsMessage,
+void ClientThread::updateNewsBulletin(int msgId, int msgType, const IBString& newsMessage,
 const IBString& originExch) {
   cout << "updateNewsBulletin:" << endl;
 }
 
-void TestThread::managedAccounts(const IBString& accountsList) {
+void ClientThread::managedAccounts(const IBString& accountsList) {
   cout << "managedAccounts:" << endl;
 }
 
-void TestThread::receiveFA(faDataType pFaDataType, const IBString& cxml) {
+void ClientThread::receiveFA(faDataType pFaDataType, const IBString& cxml) {
   cout << "receiveFA:" << endl;
 }
 
-void TestThread::historicalData(TickerId reqId, const IBString& date, double open,
+void ClientThread::historicalData(TickerId reqId, const IBString& date, double open,
 double high, double low, double close, int volume, int barCount, double WAP,
 int hasGaps) {
   cout << "historicalData:" << endl;
 }
 
-void TestThread::scannerParameters(const IBString &xml) {
+void ClientThread::scannerParameters(const IBString &xml) {
   cout << "scannerParameters:" << endl;
 }
 
-void TestThread::scannerData(int reqId, int rank, const ContractDetails &contractDetails,
+void ClientThread::scannerData(int reqId, int rank, const ContractDetails &contractDetails,
 const IBString &distance, const IBString &benchmark, const IBString &projection,
 const IBString &legsStr) {
   cout << "scannerData:" << endl;
 }
 
-void TestThread::scannerDataEnd(int reqId) {
+void ClientThread::scannerDataEnd(int reqId) {
   cout << "scannerDataEnd:" << endl;
 }
 
-void TestThread::realtimeBar(TickerId reqId, long time, double open, double high,
+void ClientThread::realtimeBar(TickerId reqId, long time, double open, double high,
 double low, double close, long volume, double wap, int count) {
   cout << "realtimeBar:" << endl;
 }
 
-void TestThread::fundamentalData(TickerId reqId, const IBString& data) {
+void ClientThread::fundamentalData(TickerId reqId, const IBString& data) {
   cout << "fundamentalData:" << endl;
 }
 
-void TestThread::deltaNeutralValidation(int reqId, const UnderComp& underComp) {
+void ClientThread::deltaNeutralValidation(int reqId, const UnderComp& underComp) {
   cout << "deltaNeutralValidation:" << endl;
 }
 
-void TestThread::tickSnapshotEnd(int reqId) {
+void ClientThread::tickSnapshotEnd(int reqId) {
   cout << "tickSnapshotEnd:" << endl;
 }
 

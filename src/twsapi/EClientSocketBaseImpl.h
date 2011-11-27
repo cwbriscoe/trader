@@ -393,7 +393,7 @@ void EClientSocketBase::CleanupBuffer(BytesVec& buffer, int processed)
 	else {
 		buffer.erase( buffer.begin(), buffer.begin() + processed);
 	}
-};
+}
 
 ///////////////////////////////////////////////////////////
 // utility funcs
