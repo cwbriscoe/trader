@@ -22,9 +22,11 @@ enum State {
 
 namespace cb {
 
+class RouterThread;
+
 class ClientThread : public Thread, EWrapper {
 public:
-  ClientThread();
+  ClientThread(RouterThread* ptr);
   virtual ~ClientThread();
 
 	void processMessages();
@@ -32,24 +34,36 @@ public:
 	void disconnect();
 	bool isConnected() const;
 
+  void send(const RequestPtr tran);
+
 protected:
   virtual void run();
     
 private:
+  //read and write to socket
+  void sendSocket();
+  void recvSocket();
+  void processSendQueue();
+
+  //request data from server
 	void reqCurrentTime();
-	void tickRequest();
+	void tickRequest(const TickRqstPtr req);
 	void placeOrder();
 	void cancelOrder();
-
-  void execute();
 
 	std::auto_ptr<EPosixClientSocket> mpClient;
   bool mConnected;
 	State mState;
 	time_t mSleepDeadline;
 	OrderId mOrderId;
-  RequestQueue mRequestQueue;
-  ResultQueue mResultQueue;
+
+  RouterThread* mpRouter;
+
+  RequestQueue mSendQueue;
+  ResultQueue mRecvQueue;
+
+  Mutex mSendMutex;
+  Mutex mRecvMutex;
 
 public:
 	//Events
@@ -142,6 +156,8 @@ public:
 
 	void tickSnapshotEnd(int reqId);
 };
+
+typedef std::unique_ptr<ClientThread> ClientThreadPtr;
 
 }
 #endif //CLIENT_THREAD_HPP

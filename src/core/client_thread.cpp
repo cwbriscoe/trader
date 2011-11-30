@@ -1,5 +1,7 @@
 #include "client_thread.hpp"
+#include "router_thread.hpp"
 #include <iostream>
+#include <cassert>
 #include "twsapi/EPosixClientSocket.h"
 #include "twsapi/Contract.h"
 #include "twsapi/Order.h"
@@ -12,26 +14,24 @@ using std::endl;
 const int PING_DEADLINE = 2; // seconds
 const int SLEEP_BETWEEN_PINGS = 30; // seconds
 
-ClientThread::ClientThread()
+ClientThread::ClientThread(RouterThread* ptr)
   : Thread() 
 	, mpClient(new EPosixClientSocket(this))
   , mConnected(false)
 	, mState(ST_CONNECT)
 	, mSleepDeadline(0)
-	, mOrderId(0) {
+	, mOrderId(0)
+	, mpRouter(ptr) {
 }
 
 ClientThread::~ClientThread() {
 }
 
 /******************************************************************************/
-/** Methods                                                                  **/
+/** Main Event Loop                                                          **/
 /******************************************************************************/
 
 void ClientThread::run() {
-  TickRqstPtr ptr = TickRqst::create();
-  ptr->symbol = "MSFT";
-  mRequestQueue.push(ptr);
 
   while (this->canRun()) {
     if (!mConnected)
@@ -43,6 +43,118 @@ void ClientThread::run() {
   }
   this->disconnect();
 }
+
+/******************************************************************************/
+/** Queueing & IO Methods                                                    **/
+/******************************************************************************/
+
+void ClientThread::send(const RequestPtr tran) {
+  Guard guard(mSendMutex);
+  mSendQueue.push(tran);
+}
+
+void ClientThread::processSendQueue() {
+  while (!mSendQueue.empty()) {
+    RequestPtr tran;
+
+    { //lock queue, pop one record and immediately unlock queue
+      Guard guard(mSendMutex);
+      if (mSendQueue.empty())
+        return;
+
+      tran = mSendQueue.front();
+      mSendQueue.pop();
+    }
+
+    switch (tran->mRqstType) {
+      case OutRqst::Tick:
+        tickRequest(std::static_pointer_cast<TickRqst>(tran));
+        break;
+      default:
+        break;
+    }
+  }
+}
+
+void ClientThread::recvSocket() {
+	fd_set readSet, errorSet;
+
+	if(mpClient->fd() < 0) 
+    return;
+
+  FD_ZERO(&readSet);
+  FD_ZERO(&errorSet);
+  FD_SET(mpClient->fd(), &readSet);
+  FD_CLR(mpClient->fd(), &errorSet);
+
+  //make timeout non-blocking with a zero timeout
+  struct timeval timeout; timeout.tv_sec = 0; timeout.tv_usec = 0;
+
+  //read socket input in a non-blocking fashion
+  int ret = select(mpClient->fd() + 1, &readSet, NULL, &errorSet, &timeout);
+
+  if (ret == 0)   // timeout
+    return;
+  
+  if (ret < 0) {	// error
+    this->disconnect();
+    return;
+  }
+
+  if (mpClient->fd() < 0)
+    return;
+
+  if (FD_ISSET(mpClient->fd(), &errorSet)) 
+    mpClient->onError();
+
+  if (mpClient->fd() < 0)
+    return;
+
+  if (FD_ISSET(mpClient->fd(), &readSet))
+    mpClient->onReceive();
+}
+
+void ClientThread::sendSocket() {
+	fd_set writeSet, errorSet;
+
+	if(mpClient->fd() < 0) 
+    return;
+
+  FD_ZERO(&writeSet);
+  FD_ZERO(&errorSet);
+  FD_SET(mpClient->fd(), &writeSet);
+  FD_CLR(mpClient->fd(), &errorSet);
+
+  //make timeout non-blocking with a zero timeout
+  struct timeval timeout; timeout.tv_sec = 0; timeout.tv_usec = 0;
+
+  //read socket input in a non-blocking fashion
+  int ret = select(mpClient->fd() + 1, NULL, &writeSet, &errorSet, &timeout);
+
+  if (ret == 0)   // timeout
+    return;
+  
+  if (ret < 0) {	// error
+    this->disconnect();
+    return;
+  }
+
+  if (mpClient->fd() < 0)
+    return;
+
+  if (FD_ISSET(mpClient->fd(), &errorSet)) 
+    mpClient->onError();
+
+  if (mpClient->fd() < 0)
+    return;
+
+  if (FD_ISSET(mpClient->fd(), &writeSet))
+    mpClient->onSend();
+}
+
+/******************************************************************************/
+/** Methods                                                                  **/
+/******************************************************************************/
 
 bool ClientThread::connect(const char *host, unsigned int port, int clientId) {
   cout << "client #" << clientId << " attempting to connect to " << host
@@ -83,7 +195,7 @@ void ClientThread::processMessages() {
 
 	switch (mState) {
 		case ST_TICKREQ:
-			tickRequest();
+			//tickRequest();
 			break;
 		case ST_PLACEORDER:
 			placeOrder();
@@ -119,56 +231,9 @@ void ClientThread::processMessages() {
 		tval.tv_sec = mSleepDeadline - now;
 	}
 
-	if(mpClient->fd() >= 0) {
-		FD_ZERO( &readSet);
-		errorSet = writeSet = readSet;
-
-		FD_SET(mpClient->fd(), &readSet);
-
-		if(!mpClient->isOutBufferEmpty())
-			FD_SET(mpClient->fd(), &writeSet);
-
-		FD_CLR(mpClient->fd(), &errorSet);
-
-    //make timeout non-blocking with a zero timeout
-	  struct timeval timeout;
-    timeout.tv_sec = 0;
-    timeout.tv_usec = 0;
-
-		int ret = select(mpClient->fd() + 1, &readSet, &writeSet, &errorSet, &timeout);
-
-		if(ret == 0)   // timeout
-			return;
-		
-		if(ret < 0) {	// error
-			disconnect();
-			return;
-		}
-
-		if (mpClient->fd() < 0)
-			return;
-
-		if(FD_ISSET(mpClient->fd(), &errorSet)) {
-			// error on socket
-			mpClient->onError();
-		}
-
-		if(mpClient->fd() < 0)
-			return;
-
-		if(FD_ISSET(mpClient->fd(), &writeSet)) {
-			// socket is ready for writing
-			mpClient->onSend();
-		}
-
-		if(mpClient->fd() < 0)
-			return;
-
-		if(FD_ISSET(mpClient->fd(), &readSet)) {
-			// socket is ready for reading
-			mpClient->onReceive();
-		}
-	}
+  this->processSendQueue();
+  this->sendSocket();
+  this->recvSocket();
 }
 
 void ClientThread::reqCurrentTime() {
@@ -182,11 +247,12 @@ void ClientThread::reqCurrentTime() {
 	mpClient->reqCurrentTime();
 }
 
-void ClientThread::tickRequest() {
+void ClientThread::tickRequest(const TickRqstPtr req) {
 	Contract contract;
   const char* stock_tick_types = "100,101,104,105,106,107,125,165,166,225,232,221,233,236,258,47,291,293,294,295,318,370,370,377,381,384,384,387,388,391,407,411";
 
-	contract.symbol = "MSFT";
+	//contract.symbol = "MSFT";
+  contract.symbol = req->mSymbol;
 	contract.secType = "STK";
 	contract.exchange = "SMART";
 	contract.currency = "USD";
@@ -194,7 +260,7 @@ void ClientThread::tickRequest() {
   cout << "requesting market data for " << contract.symbol << endl;
 
 	mState = ST_PLACEORDER;
-  mpClient->reqMktData(1, contract, stock_tick_types, false);
+  mpClient->reqMktData(req->mTickerId, contract, stock_tick_types, false);
 }
 
 void ClientThread::placeOrder() {
@@ -266,8 +332,14 @@ void ClientThread::error(const int id, const int errorCode, const IBString error
 /** Unimplemented EWrapper Events                                            **/
 /******************************************************************************/
 void ClientThread::tickPrice(TickerId tickerId, TickType field, double price, int canAutoExecute) {
-  cout << "tickPrice: " << "id:" << tickerId << " type:" << field
-       << " price:" << price << " auto:" << canAutoExecute << endl;
+  //cout << "tickPrice: " << "id:" << tickerId << " type:" << field
+  //     << " price:" << price << " auto:" << canAutoExecute << endl;
+  auto ptr = TickPriceRslt::create();
+  ptr->mTickerId       = tickerId;
+  ptr->mFieldType      = field;
+  ptr->mValue          = price;
+  ptr->mCanAutoExecute = canAutoExecute;
+  mpRouter->recv(ptr);
 }
 
 void ClientThread::tickSize(TickerId tickerId, TickType field, int size) {

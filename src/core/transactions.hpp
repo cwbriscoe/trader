@@ -43,7 +43,7 @@ typedef queue<RequestPtr> RequestQueue;
 /******************************************************************************/
 /** Result definitions                                                       **/
 /******************************************************************************/
-enum class InRslt {Tick};
+enum class InRslt {TickPrice, TickSize, TickString};
 
 struct Result : public Transaction {
   Result(const InRslt rslt) : Transaction(), mRsltType(rslt) {}
@@ -64,7 +64,26 @@ struct TickRqst : public Request {
 
   static TickRqstPtr create() {return TickRqstPtr(new TickRqst);}
 
-  string symbol;
+  long mTickerId;
+  string mSymbol;
 };
+
+/******************************************************************************/
+/** Results/Incoming transactions                                            **/
+/******************************************************************************/
+struct TickPriceRslt;
+typedef shared_ptr<TickPriceRslt> TickPriceRsltPtr;
+
+struct TickPriceRslt : public Result {
+  TickPriceRslt() : Result(InRslt::TickPrice) {}
+
+  static TickPriceRsltPtr create() {return TickPriceRsltPtr(new TickPriceRslt);}
+
+  long     mTickerId;
+  unsigned mFieldType;
+  double   mValue;
+  unsigned mCanAutoExecute;
+};
+
 }
 #endif //TRANACTION_H

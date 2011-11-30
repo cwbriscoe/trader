@@ -8,7 +8,7 @@
 using std::string;
 using std::stringstream;
 using std::cout;
-using std::endl;
+using std::end;
 
 // template class to easily convert numerics (and objects?) to std::string
 template <class T>

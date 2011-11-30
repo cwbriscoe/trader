@@ -1,4 +1,5 @@
-#include "core/client_thread.hpp"
+#include "core/router_thread.hpp"
+#include "core/bot_thread.hpp"
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Box.H>
@@ -6,8 +7,9 @@
 using namespace cb;
 
 int main(int argc, char **argv) {
-  ClientThread thread1;
-  thread1.start();
+  RouterThread router;
+  router.addBot(new BotThread(&router));
+  router.start();
 
   Fl_Window *window = new Fl_Window(340,180);
     Fl_Box *box = new Fl_Box(20,40,300,100,"Hello, World!");
@@ -24,7 +26,7 @@ int main(int argc, char **argv) {
   window->hide();
 
   //shutdown worker threads cleanly before destructors are called.
-  thread1.shutdown();
+  router.shutdown();
   
   return ret;
 }
