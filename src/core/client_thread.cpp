@@ -1,5 +1,4 @@
 #include "client_thread.hpp"
-#include "router_thread.hpp"
 #include <iostream>
 #include <cassert>
 #include "twsapi/EPosixClientSocket.h"
@@ -14,7 +13,7 @@ using std::endl;
 const int PING_DEADLINE = 2; // seconds
 const int SLEEP_BETWEEN_PINGS = 30; // seconds
 
-ClientThread::ClientThread(RouterThread* ptr)
+ClientThread::ClientThread(Requester* ptr)
   : Thread() 
 	, mpClient(new EPosixClientSocket(this))
   , mConnected(false)

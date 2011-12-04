@@ -1,12 +1,11 @@
 #include "bot_thread.hpp"
-#include "router_thread.hpp"
 
 using namespace cb;
 
 using std::cout;
 using std::endl;
 
-BotThread::BotThread(RouterThread* ptr)
+BotThread::BotThread(Provider* ptr)
   : Thread() 
 	, mpRouter(ptr) {
 }
@@ -79,8 +78,14 @@ void BotThread::processRecvQueue() {
 /******************************************************************************/
 /** Request Methods                                                          **/
 /******************************************************************************/
+void BotThread::sendRequest(RequestPtr ptr) {
+  ptr->mpRequester = this;
+  mpRouter->send(ptr);
+}
+
 void BotThread::requestTicker(const string& symbol) {
   TickRqstPtr ptr = TickRqst::create();
   ptr->mSymbol = symbol;;
-  mpRouter->send(ptr);
+  //mpRouter->send(ptr);
+  this->sendRequest(ptr);
 }

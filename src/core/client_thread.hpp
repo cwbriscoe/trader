@@ -4,7 +4,7 @@
 #include <memory>
 #include "twsapi/EWrapper.h"
 #include "cb/thread.hpp" 
-#include "transactions.hpp"
+#include "thread_interface.hpp"
 
 class EPosixClientSocket;
 
@@ -22,11 +22,9 @@ enum State {
 
 namespace cb {
 
-class RouterThread;
-
-class ClientThread : public Thread, EWrapper {
+class ClientThread : public Thread, Provider, EWrapper {
 public:
-  ClientThread(RouterThread* ptr);
+  ClientThread(Requester* ptr);
   virtual ~ClientThread();
 
 	void processMessages();
@@ -57,7 +55,7 @@ private:
 	time_t mSleepDeadline;
 	OrderId mOrderId;
 
-  RouterThread* mpRouter;
+  Requester* mpRouter;
 
   RequestQueue mSendQueue;
   ResultQueue mRecvQueue;

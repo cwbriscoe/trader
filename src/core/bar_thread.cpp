@@ -1,46 +1,23 @@
-#include "router_thread.hpp"
-#include "client_thread.hpp"
 #include "bar_thread.hpp"
-#include "bot_thread.hpp"
 
 using namespace cb;
 
 using std::cout;
 using std::endl;
 
-RouterThread::RouterThread()
+BarThread::BarThread(Provider* router)
   : Thread() 
-  , mLastTickerId(0)
-	, mpBarMaker(nullptr)
-	, mpServer(nullptr) {
-
-  mpServer = new ClientThread(this);
-  mpServer->start();
-
-  mpBarMaker = new BarThread(this);
-  mpBarMaker->start();
+  , mpRouter(router) {
 }
 
-RouterThread::~RouterThread() {
-  if (mpBot)
-    mpBot->shutdown();
-
-  mpBarMaker->shutdown();
-  delete mpBarMaker;
-
-  mpServer->shutdown();
-  delete mpServer;
-
+BarThread::~BarThread() {
 }
 
 /******************************************************************************/
 /** Main Event Loop                                                          **/
 /******************************************************************************/
 
-void RouterThread::run() {
-  //TickRqstPtr ptr = TickRqst::create();
-  //ptr->mSymbol = "MSFT";
-  //mSendQueue.push(ptr);
+void BarThread::run() {
 
   while (this->canRun()) {
     this->processSendQueue();
@@ -53,17 +30,17 @@ void RouterThread::run() {
 /** Queueing & IO Methods                                                    **/
 /******************************************************************************/
 
-void RouterThread::send(const RequestPtr ptr) {
+void BarThread::send(const RequestPtr ptr) {
   Guard guard(mSendMutex);
   mSendQueue.push(ptr);
 }
 
-void RouterThread::recv(const ResultPtr ptr) {
+void BarThread::recv(const ResultPtr ptr) {
   Guard guard(mRecvMutex);
   mRecvQueue.push(ptr);
 }
 
-void RouterThread::processSendQueue() {
+void BarThread::processSendQueue() {
   while (!mSendQueue.empty()) {
     RequestPtr tran;
 
@@ -79,18 +56,16 @@ void RouterThread::processSendQueue() {
     switch (tran->mRqstType) {
       case OutRqst::Tick: {
         auto ptr = std::static_pointer_cast<TickRqst>(tran);
-        ptr->mTickerId = ++mLastTickerId;
-        //tickRequest(std::static_pointer_cast<TickRqst>(tran));
         break;
       }
       default:
         break;
     }
-    mpServer->send(tran);
+    mpRouter->send(tran);
   }
 }
 
-void RouterThread::processRecvQueue() {
+void BarThread::processRecvQueue() {
   while (!mRecvQueue.empty()) {
     ResultPtr tran;
 
@@ -102,34 +77,10 @@ void RouterThread::processRecvQueue() {
       tran = mRecvQueue.front();
       mRecvQueue.pop();
     }
-
-    if (mpBot)
-      mpBot->recv(tran);
-
-    /*switch (tran->mRsltType) {
-      case InRslt::TickPrice: {
-        auto ptr = std::static_pointer_cast<TickPriceRslt>(tran);
-        cout << "tickPrice: " << "id:" << ptr->mTickerId << " type:"
-             << ptr->mFieldType << " price:" << ptr->mValue << " auto:"
-             << ptr->mCanAutoExecute << endl;
-        break;
-      }
-      case InRslt::TickSize:
-        break;
-      case InRslt::TickString:
-        break;
-      default:
-        break;
-    }*/
   }
 }
 
 /******************************************************************************/
 /** Methods                                                                  **/
 /******************************************************************************/
-
-void RouterThread::addBot(BotThread* bot) {
-  mpBot = BotThreadPtr(bot);
-  mpBot->start();
-}
 

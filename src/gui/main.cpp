@@ -8,7 +8,7 @@ using namespace cb;
 
 int main(int argc, char **argv) {
   RouterThread router;
-  router.addBot(new BotThread(&router));
+  router.addBot(new BotThread((Provider*)&router));
   router.start();
 
   Fl_Window *window = new Fl_Window(340,180);

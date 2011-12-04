@@ -1,25 +1,24 @@
-#ifndef BOT_THREAD_HPP
-#define BOT_THREAD_HPP
+#ifndef BAR_THREAD_HPP
+#define BAR_THREAD_HPP
 
 #include "cb/thread.hpp"
 #include "thread_interface.hpp"
 
 namespace cb {
 
-class BotThread : public Thread, Requester {
+class BarThread : public Thread, Requester, Provider {
 public:
-  BotThread(Provider* ptr);
-  virtual ~BotThread();
+  BarThread(Provider* router);
+  virtual ~BarThread();
 
+  void send(const RequestPtr tran);
   void recv(const ResultPtr tran);
 
 protected:
-  void run();
-
-  void sendRequest(RequestPtr ptr);
-  void requestTicker(const string& symbol); 
+  virtual void run();
     
 private:
+  void processSendQueue();
   void processRecvQueue();
 
   Provider* mpRouter;
@@ -31,4 +30,4 @@ private:
   Mutex mRecvMutex;
 };
 }
-#endif //BOT_THREAD_HPP
+#endif //BAR_THREAD_HPP

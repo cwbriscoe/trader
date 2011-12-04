@@ -12,6 +12,8 @@ using std::atomic;
 using std::shared_ptr;
 using std::queue;
 
+class Requester;
+
 /******************************************************************************/
 /** Transaction base class                                                   **/
 /******************************************************************************/
@@ -35,6 +37,7 @@ enum class OutRqst {Tick};
 struct Request : public Transaction {
   Request(const OutRqst rqst) : Transaction(), mRqstType(rqst) {}
 
+  Requester* mpRequester;
   OutRqst mRqstType;
 };
 typedef shared_ptr<Request> RequestPtr;

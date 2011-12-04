@@ -2,16 +2,17 @@
 #define ROUTER_THREAD_HPP
 
 #include "cb/thread.hpp"
-#include "transactions.hpp"
+#include "thread_interface.hpp"
 
 namespace cb {
 
 class ClientThread;
+class BarThread;
 class BotThread;
 
 typedef std::unique_ptr<BotThread> BotThreadPtr;
 
-class RouterThread : public Thread {
+class RouterThread : public Thread, Requester, Provider {
 public:
   RouterThread();
   virtual ~RouterThread();
@@ -30,6 +31,7 @@ private:
 
   long mLastTickerId;
 
+  BarThread* mpBarMaker;
   ClientThread* mpServer;
   BotThreadPtr mpBot;
 

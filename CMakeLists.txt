@@ -56,6 +56,7 @@ set(CLIENT
   src/core/transactions.cpp
   src/core/client_thread.cpp
   src/core/router_thread.cpp
+  src/core/bar_thread.cpp
   src/core/bot_thread.cpp
   src/gui/main.cpp
 )
