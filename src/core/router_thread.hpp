@@ -1,6 +1,7 @@
 #ifndef ROUTER_THREAD_HPP
 #define ROUTER_THREAD_HPP
 
+#include <map>
 #include "cb/thread.hpp"
 #include "thread_interface.hpp"
 
@@ -9,6 +10,9 @@ namespace cb {
 class ClientThread;
 class BarThread;
 class BotThread;
+
+typedef std::map<string, long> SymbolMap;
+typedef std::multimap<long, Requester*> TickMap;
 
 typedef std::unique_ptr<BotThread> BotThreadPtr;
 
@@ -29,11 +33,17 @@ private:
   void processSendQueue();
   void processRecvQueue();
 
+  void processTickRequest(RequestPtr tran);
+  void processTickResults(ResultPtr tran);
+
   long mLastTickerId;
 
   BarThread* mpBarMaker;
   ClientThread* mpServer;
   BotThreadPtr mpBot;
+
+  SymbolMap mSymbolMap;
+  TickMap mTickMap;
 
   RequestQueue mSendQueue;
   ResultQueue mRecvQueue;

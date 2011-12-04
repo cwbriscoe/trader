@@ -342,8 +342,8 @@ void ClientThread::tickPrice(TickerId tickerId, TickType field, double price, in
 }
 
 void ClientThread::tickSize(TickerId tickerId, TickType field, int size) {
-  cout << "tickSize: " << "id:" << tickerId << " type:" << field
-       << " size:" << size << endl;
+  //cout << "tickSize: " << "id:" << tickerId << " type:" << field
+  //     << " size:" << size << endl;
 }
 
 void ClientThread::tickOptionComputation(TickerId tickerId, TickType tickType,
@@ -353,12 +353,12 @@ double gamma, double vega, double theta, double undPrice) {
 }
 
 void ClientThread::tickGeneric(TickerId tickerId, TickType tickType, double value) {
-  cout << "tickGeneric:" << endl;
+  //cout << "tickGeneric:" << endl;
 }
 
 void ClientThread::tickString(TickerId tickerId, TickType tickType, const IBString& value) {
-  cout << "tickString: " << "id:" << tickerId << " type:" << tickType
-       << " value:" << value << endl;
+  //cout << "tickString: " << "id:" << tickerId << " type:" << tickType
+  //     << " value:" << value << endl;
 }
 
 void ClientThread::tickEFP(TickerId tickerId, TickType tickType, double basisPoints,

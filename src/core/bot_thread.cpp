@@ -28,6 +28,8 @@ void BotThread::run() {
   this->requestTicker("CSC");
   this->requestTicker("GE");
   this->requestTicker("F");
+  this->requestTicker("F");
+  this->requestTicker("F");
 
   while (this->canRun()) {
     this->processRecvQueue();
@@ -60,9 +62,9 @@ void BotThread::processRecvQueue() {
     switch (tran->mRsltType) {
       case InRslt::TickPrice: {
         auto ptr = std::static_pointer_cast<TickPriceRslt>(tran);
-        cout << "tickPrice: " << "id:" << ptr->mTickerId << " type:"
-             << ptr->mFieldType << " price:" << ptr->mValue << " auto:"
-             << ptr->mCanAutoExecute << endl;
+        //cout << "tickPrice: " << "id:" << ptr->mTickerId << " type:"
+        //     << ptr->mFieldType << " price:" << ptr->mValue << " auto:"
+        //     << ptr->mCanAutoExecute << endl;
         break;
       }
       case InRslt::TickSize:

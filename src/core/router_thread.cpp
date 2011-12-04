@@ -1,3 +1,4 @@
+#include <utility>
 #include "router_thread.hpp"
 #include "client_thread.hpp"
 #include "bar_thread.hpp"
@@ -7,6 +8,7 @@ using namespace cb;
 
 using std::cout;
 using std::endl;
+using std::pair;
 
 RouterThread::RouterThread()
   : Thread() 
@@ -31,6 +33,11 @@ RouterThread::~RouterThread() {
   mpServer->shutdown();
   delete mpServer;
 
+  for (SymbolMap::iterator it = mSymbolMap.begin(); it != mSymbolMap.end(); ++it)
+    cout << "  [" << (*it).first << ", " << (long)(*it).second << "]" << endl;
+
+  for (TickMap::iterator it = mTickMap.begin(); it != mTickMap.end(); ++it)
+    cout << "  [" << (*it).first << ", " << (*it).second << "]" << endl;
 }
 
 /******************************************************************************/
@@ -78,15 +85,12 @@ void RouterThread::processSendQueue() {
 
     switch (tran->mRqstType) {
       case OutRqst::Tick: {
-        auto ptr = std::static_pointer_cast<TickRqst>(tran);
-        ptr->mTickerId = ++mLastTickerId;
-        //tickRequest(std::static_pointer_cast<TickRqst>(tran));
+        this->processTickRequest(tran);
         break;
       }
       default:
         break;
     }
-    mpServer->send(tran);
   }
 }
 
@@ -103,30 +107,57 @@ void RouterThread::processRecvQueue() {
       mRecvQueue.pop();
     }
 
-    if (mpBot)
-      mpBot->recv(tran);
-
-    /*switch (tran->mRsltType) {
-      case InRslt::TickPrice: {
-        auto ptr = std::static_pointer_cast<TickPriceRslt>(tran);
-        cout << "tickPrice: " << "id:" << ptr->mTickerId << " type:"
-             << ptr->mFieldType << " price:" << ptr->mValue << " auto:"
-             << ptr->mCanAutoExecute << endl;
-        break;
-      }
+    switch (tran->mRsltType) {
+      case InRslt::TickPrice: 
       case InRslt::TickSize:
-        break;
       case InRslt::TickString:
+        this->processTickResults(tran);
         break;
       default:
         break;
-    }*/
+    }
   }
 }
 
 /******************************************************************************/
 /** Methods                                                                  **/
 /******************************************************************************/
+void RouterThread::processTickRequest(RequestPtr tran) {
+  auto ptr = std::static_pointer_cast<TickRqst>(tran);
+
+  //find symbol in the symbol map
+  ptr->mTickerId = mSymbolMap[ptr->mSymbol];
+
+  //if not found, add it to the symbol map
+  if (!ptr->mTickerId) {
+    ptr->mTickerId = ++mLastTickerId;
+    //cout << "inserting " << ptr->mSymbol << " " << ptr->mTickerId << endl;
+    mSymbolMap[ptr->mSymbol] = ptr->mTickerId;
+  }
+  
+  //find requestor in the tick map
+  pair<TickMap::iterator, TickMap::iterator> rng;
+  rng = mTickMap.equal_range(ptr->mTickerId);
+  for (auto it = rng.first; it != rng.second; ++it) {
+    if (it->second == tran->mpRequester) {
+      cout << "duplicate tick request for " << ptr->mSymbol << endl;
+      return;
+    }
+  }
+
+  //if not found, add to tick map and send request to server
+  mTickMap.insert(TickMap::value_type(ptr->mTickerId, tran->mpRequester));
+  mpServer->send(tran);
+}
+
+void RouterThread::processTickResults(ResultPtr tran) {
+  auto ptr = std::static_pointer_cast<TickRslt>(tran);
+  //loop through all requestors for specified symbol and send tick results
+  pair<TickMap::iterator, TickMap::iterator> rng;
+  rng = mTickMap.equal_range(ptr->mTickerId);
+  for (auto it = rng.first; it != rng.second; ++it)
+    it->second->recv(tran);
+}
 
 void RouterThread::addBot(BotThread* bot) {
   mpBot = BotThreadPtr(bot);

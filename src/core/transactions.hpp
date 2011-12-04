@@ -74,15 +74,23 @@ struct TickRqst : public Request {
 /******************************************************************************/
 /** Results/Incoming transactions                                            **/
 /******************************************************************************/
+struct TickRslt;
+typedef shared_ptr<TickRslt> TickRsltPtr;
+
+struct TickRslt : public Result {
+  TickRslt(const InRslt rslt) : Result(rslt) {}
+
+  long     mTickerId;
+};
+
 struct TickPriceRslt;
 typedef shared_ptr<TickPriceRslt> TickPriceRsltPtr;
 
-struct TickPriceRslt : public Result {
-  TickPriceRslt() : Result(InRslt::TickPrice) {}
+struct TickPriceRslt : public TickRslt {
+  TickPriceRslt() : TickRslt(InRslt::TickPrice) {}
 
   static TickPriceRsltPtr create() {return TickPriceRsltPtr(new TickPriceRslt);}
 
-  long     mTickerId;
   unsigned mFieldType;
   double   mValue;
   unsigned mCanAutoExecute;
