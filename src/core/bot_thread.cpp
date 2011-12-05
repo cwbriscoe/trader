@@ -5,9 +5,10 @@ using namespace cb;
 using std::cout;
 using std::endl;
 
-BotThread::BotThread(Provider* ptr)
+BotThread::BotThread(Provider* router, Provider* barmaker)
   : Thread() 
-	, mpRouter(ptr) {
+	, mpRouter(router) 
+	, mpBarMaker(barmaker) {
 }
 
 BotThread::~BotThread() {
@@ -28,8 +29,9 @@ void BotThread::run() {
   this->requestTicker("CSC");
   this->requestTicker("GE");
   this->requestTicker("F");
-  this->requestTicker("F");
-  this->requestTicker("F");
+  this->requestBars("GOOG",1);
+  this->requestBars("GOOG",2);
+  this->requestBars("GOOG",3);
 
   while (this->canRun()) {
     this->processRecvQueue();
@@ -80,14 +82,21 @@ void BotThread::processRecvQueue() {
 /******************************************************************************/
 /** Request Methods                                                          **/
 /******************************************************************************/
-void BotThread::sendRequest(RequestPtr ptr) {
+void BotThread::sendRequest(Provider* provider, RequestPtr ptr) {
   ptr->mpRequester = this;
-  mpRouter->send(ptr);
+  provider->send(ptr);
 }
 
 void BotThread::requestTicker(const string& symbol) {
   TickRqstPtr ptr = TickRqst::create();
   ptr->mSymbol = symbol;;
-  //mpRouter->send(ptr);
-  this->sendRequest(ptr);
+  this->sendRequest(mpRouter, ptr);
 }
+
+void BotThread::requestBars(const string& symbol, const unsigned secs) {
+  BarRqstPtr ptr = BarRqst::create();
+  ptr->mSymbol = symbol;;
+  ptr->mBarSize = secs;
+  this->sendRequest(mpBarMaker, ptr);
+}
+

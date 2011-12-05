@@ -67,9 +67,11 @@ void ClientThread::processSendQueue() {
 
     switch (tran->mRqstType) {
       case OutRqst::Tick:
+      case OutRqst::Bar:
         tickRequest(std::static_pointer_cast<TickRqst>(tran));
         break;
       default:
+        cout << "clientthread: invalid request - " << (int)tran->mRqstType << endl;
         break;
     }
   }
@@ -184,8 +186,6 @@ bool ClientThread::isConnected() const {
 }
 
 void ClientThread::processMessages() {
-	fd_set readSet, writeSet, errorSet;
-
 	struct timeval tval;
 	tval.tv_usec = 0;
 	tval.tv_sec = 0;

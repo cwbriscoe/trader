@@ -32,7 +32,7 @@ struct Transaction {
 /******************************************************************************/
 /** Request definitions                                                      **/
 /******************************************************************************/
-enum class OutRqst {Tick};
+enum class OutRqst {Tick, Bar};
 
 struct Request : public Transaction {
   Request(const OutRqst rqst) : Transaction(), mRqstType(rqst) {}
@@ -64,11 +64,23 @@ typedef shared_ptr<TickRqst> TickRqstPtr;
 
 struct TickRqst : public Request {
   TickRqst() : Request(OutRqst::Tick) {}
+  TickRqst(const OutRqst rqst) : Request(rqst) {}
 
   static TickRqstPtr create() {return TickRqstPtr(new TickRqst);}
 
   long mTickerId;
   string mSymbol;
+};
+
+struct BarRqst;
+typedef shared_ptr<BarRqst> BarRqstPtr;
+
+struct BarRqst : public TickRqst {
+  BarRqst() : TickRqst(OutRqst::Bar) {}
+
+  static BarRqstPtr create() {return BarRqstPtr(new BarRqst);}
+
+  unsigned mBarSize;
 };
 
 /******************************************************************************/

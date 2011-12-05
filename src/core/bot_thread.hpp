@@ -8,7 +8,7 @@ namespace cb {
 
 class BotThread : public Thread, Requester {
 public:
-  BotThread(Provider* ptr);
+  BotThread(Provider* router, Provider* barmaker);
   virtual ~BotThread();
 
   void recv(const ResultPtr tran);
@@ -16,13 +16,15 @@ public:
 protected:
   void run();
 
-  void sendRequest(RequestPtr ptr);
+  void sendRequest(Provider* provider, RequestPtr ptr);
   void requestTicker(const string& symbol); 
+  void requestBars(const string& symbol, const unsigned secs);
     
 private:
   void processRecvQueue();
 
   Provider* mpRouter;
+  Provider* mpBarMaker;
 
   RequestQueue mSendQueue;
   ResultQueue mRecvQueue;

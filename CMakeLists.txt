@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 2.8)
 
 #Miscellaneous flags for development
 SET(CMAKE_VERBOSE_MAKEFILE FALSE)
-#SET(CMAKE_BUILD_TYPE Release)
-SET(CMAKE_BUILD_TYPE Debug)
+SET(CMAKE_BUILD_TYPE Release)
+#SET(CMAKE_BUILD_TYPE Debug)
 #SET(CMAKE_C_COMPILER "clang")
 #SET(CMAKE_CXX_COMPILER "clang++")
 SET(CMAKE_C_COMPILER "gcc")

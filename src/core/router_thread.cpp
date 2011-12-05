@@ -21,6 +21,9 @@ RouterThread::RouterThread()
 
   mpBarMaker = new BarThread(this);
   mpBarMaker->start();
+
+  mpBot = BotThreadPtr(new BotThread((Provider*)this, (Provider*)mpBarMaker));
+  mpBot->start();
 }
 
 RouterThread::~RouterThread() {
@@ -84,11 +87,12 @@ void RouterThread::processSendQueue() {
     }
 
     switch (tran->mRqstType) {
-      case OutRqst::Tick: {
+      case OutRqst::Tick: 
+      case OutRqst::Bar: 
         this->processTickRequest(tran);
         break;
-      }
       default:
+        cout << "routerthread: invalid request - " << (int)tran->mRqstType << endl;
         break;
     }
   }
@@ -127,6 +131,7 @@ void RouterThread::processTickRequest(RequestPtr tran) {
 
   //find symbol in the symbol map
   ptr->mTickerId = mSymbolMap[ptr->mSymbol];
+  //cout << "tickerid=" << ptr->mTickerId << endl;
 
   //if not found, add it to the symbol map
   if (!ptr->mTickerId) {

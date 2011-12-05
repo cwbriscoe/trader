@@ -54,11 +54,13 @@ void BarThread::processSendQueue() {
     }
 
     switch (tran->mRqstType) {
-      case OutRqst::Tick: {
-        auto ptr = std::static_pointer_cast<TickRqst>(tran);
+      case OutRqst::Bar: {
+        auto ptr = std::static_pointer_cast<BarRqst>(tran);
+        ptr->mpRequester = this;
         break;
       }
       default:
+        cout << "barthread: invalid request - " << (int)tran->mRqstType << endl;
         break;
     }
     mpRouter->send(tran);
