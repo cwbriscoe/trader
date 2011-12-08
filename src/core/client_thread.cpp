@@ -344,6 +344,11 @@ void ClientThread::tickPrice(TickerId tickerId, TickType field, double price, in
 void ClientThread::tickSize(TickerId tickerId, TickType field, int size) {
   //cout << "tickSize: " << "id:" << tickerId << " type:" << field
   //     << " size:" << size << endl;
+  auto ptr = TickSizeRslt::create();
+  ptr->mTickerId       = tickerId;
+  ptr->mFieldType      = field;
+  ptr->mSize           = size;
+  mpRouter->recv(ptr);
 }
 
 void ClientThread::tickOptionComputation(TickerId tickerId, TickType tickType,
@@ -356,9 +361,14 @@ void ClientThread::tickGeneric(TickerId tickerId, TickType tickType, double valu
   //cout << "tickGeneric:" << endl;
 }
 
-void ClientThread::tickString(TickerId tickerId, TickType tickType, const IBString& value) {
+void ClientThread::tickString(TickerId tickerId, TickType field, const IBString& value) {
   //cout << "tickString: " << "id:" << tickerId << " type:" << tickType
   //     << " value:" << value << endl;
+  auto ptr = TickStringRslt::create();
+  ptr->mTickerId       = tickerId;
+  ptr->mFieldType      = field;
+  ptr->mValue          = value;
+  mpRouter->recv(ptr);
 }
 
 void ClientThread::tickEFP(TickerId tickerId, TickType tickType, double basisPoints,

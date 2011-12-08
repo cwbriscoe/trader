@@ -10,6 +10,7 @@ namespace cb {
 class ClientThread;
 class BarThread;
 class BotThread;
+class EventThread;
 
 typedef std::map<string, long> SymbolMap;
 typedef std::multimap<long, Requester*> TickMap;
@@ -25,6 +26,7 @@ public:
   void recv(const ResultPtr tran);
 
   void addBot(BotThread* bot);
+  EventThread* getEventThread() const {return mpEvents;}
 
 protected:
   virtual void run();
@@ -40,6 +42,7 @@ private:
 
   BarThread* mpBarMaker;
   ClientThread* mpServer;
+  EventThread* mpEvents;
   BotThreadPtr mpBot;
 
   SymbolMap mSymbolMap;

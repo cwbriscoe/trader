@@ -2,6 +2,7 @@
 #include "router_thread.hpp"
 #include "client_thread.hpp"
 #include "bar_thread.hpp"
+#include "event_thread.hpp"
 #include "bot_thread.hpp"
 
 using namespace cb;
@@ -14,7 +15,9 @@ RouterThread::RouterThread()
   : Thread() 
   , mLastTickerId(0)
 	, mpBarMaker(nullptr)
-	, mpServer(nullptr) {
+	, mpServer(nullptr) 
+	, mpEvents(nullptr)
+	, mpBot(nullptr) {
 
   mpServer = new ClientThread(this);
   mpServer->start();
@@ -22,7 +25,10 @@ RouterThread::RouterThread()
   mpBarMaker = new BarThread(this);
   mpBarMaker->start();
 
-  mpBot = BotThreadPtr(new BotThread((Provider*)this, (Provider*)mpBarMaker));
+  mpEvents = new EventThread();
+  mpEvents->start();
+
+  mpBot = BotThreadPtr(new BotThread((Provider*)this, (Provider*)mpBarMaker, (Requester*)mpEvents));
   mpBot->start();
 }
 
@@ -32,6 +38,9 @@ RouterThread::~RouterThread() {
 
   mpBarMaker->shutdown();
   delete mpBarMaker;
+
+  mpEvents->shutdown();
+  delete mpEvents;
 
   mpServer->shutdown();
   delete mpServer;
@@ -134,10 +143,12 @@ void RouterThread::processTickRequest(RequestPtr tran) {
   //cout << "tickerid=" << ptr->mTickerId << endl;
 
   //if not found, add it to the symbol map
+  bool newTickRqst = false;
   if (!ptr->mTickerId) {
     ptr->mTickerId = ++mLastTickerId;
     //cout << "inserting " << ptr->mSymbol << " " << ptr->mTickerId << endl;
     mSymbolMap[ptr->mSymbol] = ptr->mTickerId;
+    newTickRqst = true;
   }
   
   //find requestor in the tick map
@@ -152,7 +163,7 @@ void RouterThread::processTickRequest(RequestPtr tran) {
 
   //if not found, add to tick map and send request to server
   mTickMap.insert(TickMap::value_type(ptr->mTickerId, tran->mpRequester));
-  mpServer->send(tran);
+  if (newTickRqst) mpServer->send(tran);
 }
 
 void RouterThread::processTickResults(ResultPtr tran) {

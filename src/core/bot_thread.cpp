@@ -5,10 +5,11 @@ using namespace cb;
 using std::cout;
 using std::endl;
 
-BotThread::BotThread(Provider* router, Provider* barmaker)
+BotThread::BotThread(Provider* router, Provider* barmaker, Requester* events)
   : Thread() 
 	, mpRouter(router) 
-	, mpBarMaker(barmaker) {
+	, mpBarMaker(barmaker)
+	, mpEvents(events) {
 }
 
 BotThread::~BotThread() {
@@ -64,18 +65,27 @@ void BotThread::processRecvQueue() {
     switch (tran->mRsltType) {
       case InRslt::TickPrice: {
         auto ptr = std::static_pointer_cast<TickPriceRslt>(tran);
-        //cout << "tickPrice: " << "id:" << ptr->mTickerId << " type:"
-        //     << ptr->mFieldType << " price:" << ptr->mValue << " auto:"
-        //     << ptr->mCanAutoExecute << endl;
+        cout << "id:" << ptr->mTickerId << " type:"
+             << ptr->mFieldType << " price:" << ptr->mValue << " auto:"
+             << ptr->mCanAutoExecute << endl;
         break;
       }
-      case InRslt::TickSize:
+      case InRslt::TickSize: {
+        auto ptr = std::static_pointer_cast<TickSizeRslt>(tran);
+        cout << "id:" << ptr->mTickerId << " type:" << ptr->mFieldType
+             << " size:" << ptr->mSize << endl;
         break;
-      case InRslt::TickString:
+      }
+      case InRslt::TickString: {
+        auto ptr = std::static_pointer_cast<TickStringRslt>(tran);
+        cout << "id:" << ptr->mTickerId << " type:" << ptr->mFieldType
+             << " string:" << ptr->mValue << endl;
         break;
+      }
       default:
         break;
     }
+    mpEvents->recv(tran);
   }
 }
 

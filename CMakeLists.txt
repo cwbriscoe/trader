@@ -16,7 +16,7 @@ FIND_PACKAGE(FLTK)
 FIND_PACKAGE(OpenGL REQUIRED)
 
 if(FLTK_FOUND)
-  include_directories(${FLTK_INCLUDE_DIR})
+  include_directories("SYSTEM" ${FLTK_INCLUDE_DIR})
 else(FLTK_FOUND)
   message(FATAL_ERROR "Could not find FLTK")
   #include_directories("/local/include")
@@ -26,7 +26,7 @@ include_directories(${TRADER_SOURCE_DIR}/src)
 
 # TWSAPI
 if(MINGW)
-  include_directories(/local/include/twsapi)
+  #include_directories("SYSTEM" /local/include/twsapi)
   set(TWSAPI_LIBRARIES "/local/lib/libtwsapi.a")
 endif()
 
@@ -58,6 +58,7 @@ set(CLIENT
   src/core/router_thread.cpp
   src/core/bar_thread.cpp
   src/core/bot_thread.cpp
+  src/core/event_thread.cpp
   src/gui/main.cpp
 )
 

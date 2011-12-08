@@ -108,5 +108,29 @@ struct TickPriceRslt : public TickRslt {
   unsigned mCanAutoExecute;
 };
 
+struct TickSizeRslt;
+typedef shared_ptr<TickSizeRslt> TickSizeRsltPtr;
+
+struct TickSizeRslt : public TickRslt {
+  TickSizeRslt() : TickRslt(InRslt::TickSize) {}
+
+  static TickSizeRsltPtr create() {return TickSizeRsltPtr(new TickSizeRslt);}
+
+  unsigned mFieldType;
+  int      mSize;
+};
+
+struct TickStringRslt;
+typedef shared_ptr<TickStringRslt> TickStringRsltPtr;
+
+struct TickStringRslt : public TickRslt {
+  TickStringRslt() : TickRslt(InRslt::TickString) {}
+
+  static TickStringRsltPtr create() {return TickStringRsltPtr(new TickStringRslt);}
+
+  unsigned mFieldType;
+  string   mValue;
+};
+
 }
 #endif //TRANACTION_H
