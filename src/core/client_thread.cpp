@@ -1,14 +1,10 @@
 #include "client_thread.hpp"
-#include <iostream>
-#include <cassert>
+#include "cb/iostream.hpp" 
 #include "twsapi/EPosixClientSocket.h"
 #include "twsapi/Contract.h"
 #include "twsapi/Order.h"
 
 using namespace cb;
-
-using std::cout;
-using std::endl;
 
 const int PING_DEADLINE = 2; // seconds
 const int SLEEP_BETWEEN_PINGS = 30; // seconds

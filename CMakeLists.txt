@@ -59,6 +59,7 @@ set(CLIENT
   src/core/bar_thread.cpp
   src/core/bot_thread.cpp
   src/core/event_thread.cpp
+  src/gui/gui.cpp
   src/gui/main.cpp
 )
 

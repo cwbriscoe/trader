@@ -1,9 +1,9 @@
 #ifndef CLIENT_THREAD_HPP
 #define CLIENT_THREAD_HPP
 
-#include <memory>
 #include "twsapi/EWrapper.h"
 #include "cb/thread.hpp" 
+#include "cb/memory.hpp" 
 #include "thread_interface.hpp"
 
 class EPosixClientSocket;

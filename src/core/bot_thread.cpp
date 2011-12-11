@@ -1,18 +1,22 @@
 #include "bot_thread.hpp"
+#include "cb/iostream.hpp"
 
 using namespace cb;
 
-using std::cout;
-using std::endl;
-
-BotThread::BotThread(Provider* router, Provider* barmaker, Requester* events)
+BotThread::BotThread()
   : Thread() 
-	, mpRouter(router) 
-	, mpBarMaker(barmaker)
-	, mpEvents(events) {
+	, mpRouter(nullptr) 
+	, mpBarMaker(nullptr)
+	, mpEvents(nullptr) {
 }
 
 BotThread::~BotThread() {
+}
+
+void BotThread::init(Provider* router, Provider* barmaker, Requester* events) {
+  mpRouter   = router;
+  mpBarMaker = barmaker;
+  mpEvents   = events;
 }
 
 /******************************************************************************/
@@ -20,7 +24,7 @@ BotThread::~BotThread() {
 /******************************************************************************/
 
 void BotThread::run() {
-  this->requestTicker("MSFT");
+  /*this->requestTicker("MSFT");
   this->requestTicker("GOOG");
   this->requestTicker("YHOO");
   this->requestTicker("DELL");
@@ -32,7 +36,7 @@ void BotThread::run() {
   this->requestTicker("F");
   this->requestBars("GOOG",1);
   this->requestBars("GOOG",2);
-  this->requestBars("GOOG",3);
+  this->requestBars("GOOG",3);*/
 
   while (this->canRun()) {
     this->processRecvQueue();

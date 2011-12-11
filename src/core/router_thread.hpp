@@ -15,7 +15,7 @@ class EventThread;
 typedef std::map<string, long> SymbolMap;
 typedef std::multimap<long, Requester*> TickMap;
 
-typedef std::unique_ptr<BotThread> BotThreadPtr;
+typedef std::shared_ptr<BotThread> BotThreadPtr;
 
 class RouterThread : public Thread, Requester, Provider {
 public:
@@ -25,7 +25,7 @@ public:
   void send(const RequestPtr tran);
   void recv(const ResultPtr tran);
 
-  void addBot(BotThread* bot);
+  void addBot(BotThreadPtr bot);
   EventThread* getEventThread() const {return mpEvents;}
 
 protected:

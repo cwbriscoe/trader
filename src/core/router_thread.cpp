@@ -28,8 +28,8 @@ RouterThread::RouterThread()
   mpEvents = new EventThread();
   mpEvents->start();
 
-  mpBot = BotThreadPtr(new BotThread((Provider*)this, (Provider*)mpBarMaker, (Requester*)mpEvents));
-  mpBot->start();
+  //mpBot = BotThreadPtr(new BotThread((Provider*)this, (Provider*)mpBarMaker, (Requester*)mpEvents));
+  //mpBot->start();
 }
 
 RouterThread::~RouterThread() {
@@ -175,8 +175,10 @@ void RouterThread::processTickResults(ResultPtr tran) {
     it->second->recv(tran);
 }
 
-void RouterThread::addBot(BotThread* bot) {
-  mpBot = BotThreadPtr(bot);
+void RouterThread::addBot(BotThreadPtr bot) {
+  //mpBot = BotThreadPtr(bot);
+  mpBot = bot;
+  mpBot->init((Provider*)this, (Provider*)mpBarMaker, (Requester*)mpEvents);
   mpBot->start();
 }
 

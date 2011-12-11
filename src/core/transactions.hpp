@@ -2,14 +2,13 @@
 #define TRANACTION_H
 
 #include <atomic>
-#include <memory>
 #include <queue>
+#include "cb/memory.hpp"
 #include "cb/string.hpp"
 
 namespace cb {
 
 using std::atomic;
-using std::shared_ptr;
 using std::queue;
 
 class Requester;

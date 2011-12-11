@@ -1,9 +1,7 @@
 #include "bar_thread.hpp"
+#include "cb/iostream.hpp"
 
 using namespace cb;
-
-using std::cout;
-using std::endl;
 
 BarThread::BarThread(Provider* router)
   : Thread() 
