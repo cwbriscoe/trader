@@ -6,7 +6,7 @@
 
 namespace cb {
 
-class BarThread : public Thread, Requester, Provider {
+class BarThread : public Thread, public Requester, public Provider {
 public:
   BarThread(Provider* router);
   virtual ~BarThread();

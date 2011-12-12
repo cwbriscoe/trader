@@ -67,7 +67,7 @@ void ClientThread::processSendQueue() {
         tickRequest(std::static_pointer_cast<TickRqst>(tran));
         break;
       default:
-        cout << "clientthread: invalid request - " << (int)tran->mRqstType << endl;
+        cout << "clientthread: invalid request - " << int(tran->mRqstType) << endl;
         break;
     }
   }
@@ -477,14 +477,14 @@ double low, double close, long volume, double wap, int count) {
 }
 
 void ClientThread::fundamentalData(TickerId reqId, const IBString& data) {
-  cout << "fundamentalData:" << endl;
+  cout << "fundamentalData: reqId=" << reqId << ", data=" << data << endl;
 }
 
 void ClientThread::deltaNeutralValidation(int reqId, const UnderComp& underComp) {
-  cout << "deltaNeutralValidation:" << endl;
+  cout << "deltaNeutralValidation: reqId=" << reqId << ", underComp=" << underComp.conId << endl;
 }
 
 void ClientThread::tickSnapshotEnd(int reqId) {
-  cout << "tickSnapshotEnd:" << endl;
+  cout << "tickSnapshotEnd: reqId=" << reqId << endl;
 }
 

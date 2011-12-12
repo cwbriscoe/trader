@@ -1,4 +1,5 @@
 #include <utility>
+#include "cb/iostream.hpp"
 #include "router_thread.hpp"
 #include "client_thread.hpp"
 #include "bar_thread.hpp"
@@ -7,8 +8,6 @@
 
 using namespace cb;
 
-using std::cout;
-using std::endl;
 using std::pair;
 
 RouterThread::RouterThread()
@@ -45,10 +44,13 @@ RouterThread::~RouterThread() {
   mpServer->shutdown();
   delete mpServer;
 
-  for (SymbolMap::iterator it = mSymbolMap.begin(); it != mSymbolMap.end(); ++it)
-    cout << "  [" << (*it).first << ", " << (long)(*it).second << "]" << endl;
+  for (auto it = mSymbolMap.begin(); it != mSymbolMap.end(); ++it)
+    cout << "  [" << (*it).first << ", " << (*it).second << "]" << endl;
 
-  for (TickMap::iterator it = mTickMap.begin(); it != mTickMap.end(); ++it)
+  for (auto it = mTickIdMap.begin(); it != mTickIdMap.end(); ++it)
+    cout << "  [" << (*it).first << ", " << (*it).second << "]" << endl;
+
+  for (auto it = mTickMap.begin(); it != mTickMap.end(); ++it)
     cout << "  [" << (*it).first << ", " << (*it).second << "]" << endl;
 }
 
@@ -101,7 +103,7 @@ void RouterThread::processSendQueue() {
         this->processTickRequest(tran);
         break;
       default:
-        cout << "routerthread: invalid request - " << (int)tran->mRqstType << endl;
+        cout << "routerthread: invalid request - " << int(tran->mRqstType) << endl;
         break;
     }
   }
@@ -147,7 +149,8 @@ void RouterThread::processTickRequest(RequestPtr tran) {
   if (!ptr->mTickerId) {
     ptr->mTickerId = ++mLastTickerId;
     //cout << "inserting " << ptr->mSymbol << " " << ptr->mTickerId << endl;
-    mSymbolMap[ptr->mSymbol] = ptr->mTickerId;
+    mSymbolMap[ptr->mSymbol]   = ptr->mTickerId;
+    mTickIdMap[ptr->mTickerId] = ptr->mSymbol;
     newTickRqst = true;
   }
   
@@ -168,6 +171,13 @@ void RouterThread::processTickRequest(RequestPtr tran) {
 
 void RouterThread::processTickResults(ResultPtr tran) {
   auto ptr = std::static_pointer_cast<TickRslt>(tran);
+  //first find the tickerid in the symbol map
+  auto sit = mTickIdMap.find(ptr->mTickerId);
+  if (sit == mTickIdMap.end()) {
+    cout << "tickerid " << ptr->mTickerId << " no longer in symbol map" << endl;
+    return;
+  }
+  ptr->mSymbol = sit->second;
   //loop through all requestors for specified symbol and send tick results
   pair<TickMap::iterator, TickMap::iterator> rng;
   rng = mTickMap.equal_range(ptr->mTickerId);
@@ -178,7 +188,7 @@ void RouterThread::processTickResults(ResultPtr tran) {
 void RouterThread::addBot(BotThreadPtr bot) {
   //mpBot = BotThreadPtr(bot);
   mpBot = bot;
-  mpBot->init((Provider*)this, (Provider*)mpBarMaker, (Requester*)mpEvents);
+  mpBot->init(this, mpBarMaker, mpEvents);
   mpBot->start();
 }
 

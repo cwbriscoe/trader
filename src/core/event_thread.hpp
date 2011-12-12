@@ -6,7 +6,7 @@
 
 namespace cb {
 
-class EventThread : public Thread, Requester {
+class EventThread : public Thread, public Requester {
 public:
   EventThread();
   virtual ~EventThread();

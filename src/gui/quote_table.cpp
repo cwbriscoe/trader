@@ -1,11 +1,10 @@
 #include "quote_table.hpp"
-#include "core/job_list.hpp"
-#include "cb/string.hpp"
+#include "cb/iostream.hpp"
 
 using namespace cb;
 
 QuoteTable::QuoteTable(int X, int Y, int W, int H, const char *L)
-  : Fl_Table(X,Y,W,H,L), mpJobList(nullptr) {
+  : Fl_Table(X,Y,W,H,L), mQuoteList() {
 
   // Rows
   rows(MAX_ROWS);       // how many rows
@@ -20,10 +19,10 @@ QuoteTable::QuoteTable(int X, int Y, int W, int H, const char *L)
   col_resize(0);        // disable column resizing
 
   // Static column widths
-  col_width(0, 80);
-  col_width(1, 160);
-  col_width(2, 240);
-  col_width(3, 80);
+  //col_width(0, 80);
+  //col_width(1, 160);
+  //col_width(2, 240);
+  //col_width(3, 80);
 
   end();                // end the Fl_Table group
 }
@@ -41,11 +40,12 @@ void QuoteTable::drawHeader(const char *s, int X, int Y, int W, int H) {
 
 void QuoteTable::drawData(const char *s, int ROW, int COL, int X, int Y, int W, int H) {
   if (!COL) COL=1;  //compile warning prevention
-  if (!mpJobList) return;
+  if (!ROW) ROW=1;  //compile warning prevention
+  if (!mQuoteList.size()) return;
   fl_push_clip(X,Y,W,H);
     // Draw cell bg
     auto clr = FL_WHITE;
-    switch (mpJobList->get(ROW)->getStatus()) {
+    /*switch (mpJobList->get(ROW)->getStatus()) {
       case DbStatus::DBERROR:
         clr = FL_RED;
         break;
@@ -58,7 +58,7 @@ void QuoteTable::drawData(const char *s, int ROW, int COL, int X, int Y, int W, 
       default:
         clr = FL_YELLOW;
         break;
-    }
+    }*/
     fl_color(clr); fl_rectf(X,Y,W,H);
     // Draw cell data
     fl_color(FL_GRAY0); fl_draw(s, X,Y,W,H, FL_ALIGN_CENTER);
@@ -68,36 +68,44 @@ void QuoteTable::drawData(const char *s, int ROW, int COL, int X, int Y, int W, 
 } 
 
 void QuoteTable::draw_cell(TableContext context, int ROW, int COL, int X, int Y, int W, int H) {
+  if (ROW > int(mQuoteList.size())) return;
   switch (context) {
-    case CONTEXT_STARTPAGE:                   // before page is drawn..
-      fl_font(FL_HELVETICA, 14);              // set the font for our drawing operations
-      if (mpJobList) { 
-        auto nrows = mpJobList->size();
+    case CONTEXT_STARTPAGE: {                 // before page is drawn..
+        fl_font(FL_HELVETICA, 14);              // set the font for our drawing operations
+        auto nrows = mQuoteList.size();
         nrows = nrows < MAX_ROWS ? nrows : MAX_ROWS;
         rows(nrows);
-      } else
-        rows(0);
-      break; 
+        break; 
+    }
     case CONTEXT_ENDPAGE:
       break;
     case CONTEXT_ROW_HEADER:                  // Draw row headers
-      static char s[40];
-      sprintf(s,"%03d:",ROW);                 // "001:", "002:", etc
-      drawHeader(s,X,Y,W,H);
+      //static char s[40];
+      //sprintf(s,"%03d:",ROW);                 // "001:", "002:", etc
+      drawHeader(mQuoteList[ROW].mSymbol.c_str(),X,Y,W,H);
       break; 
     case CONTEXT_COL_HEADER:                  // Draw column headers
-      switch (COL) {
-        case 0:
-          drawHeader("Date", X, Y, W, H);
+      switch (QuoteCol(COL)) {
+        case QuoteCol::LastPrice:
+          drawHeader("Price", X, Y, W, H);
           break;
-        case 1:
-          drawHeader("Query", X, Y, W, H);
+        case QuoteCol::LastSize:
+          drawHeader("Size", X, Y, W, H);
           break;
-        case 2:
-          drawHeader("Parmameters", X, Y, W, H);
+        case QuoteCol::BidPrice:
+          drawHeader("Bid", X, Y, W, H);
           break;
-        case 3:
-          drawHeader("Status", X, Y, W, H);
+        case QuoteCol::BidSize:
+          drawHeader("BidSz", X, Y, W, H);
+          break;
+        case QuoteCol::AskPrice:
+          drawHeader("Ask", X, Y, W, H);
+          break;
+        case QuoteCol::AskSize:
+          drawHeader("AskSz", X, Y, W, H);
+          break;
+        case QuoteCol::Volume:
+          drawHeader("Vol", X, Y, W, H);
           break;
         default:
           drawHeader("?????", X, Y, W, H);
@@ -105,20 +113,29 @@ void QuoteTable::draw_cell(TableContext context, int ROW, int COL, int X, int Y,
       }
       break; 
     case CONTEXT_CELL: {                      // Draw data in cells
-      if (mpJobList && (unsigned)ROW < mpJobList->size()) {
+      if (unsigned(ROW) < mQuoteList.size()) {
         stringstream ss;
-        switch (COL) {
-          case 0:
-            ss << "2011-12-05";
+        switch (QuoteCol(COL)) {
+          case QuoteCol::LastPrice:
+            ss << mQuoteList[ROW].mLastPrice;
             break;
-          case 1:
-            ss << "Query Name";
+          case QuoteCol::LastSize:
+            ss << mQuoteList[ROW].mLastSize;
             break;
-          case 2:
-            ss << "Paramaters 1,2,3,4,5,6,etc";
+          case QuoteCol::BidPrice:
+            ss << mQuoteList[ROW].mBidPrice;
             break;
-          case 3:
-            ss << mpJobList->get(ROW)->getStatusString();
+          case QuoteCol::BidSize:
+            ss << mQuoteList[ROW].mBidSize;
+            break;
+          case QuoteCol::AskPrice:
+            ss << mQuoteList[ROW].mAskPrice;
+            break;
+          case QuoteCol::AskSize:
+            ss << mQuoteList[ROW].mAskSize;
+            break;
+          case QuoteCol::Volume:
+            ss << mQuoteList[ROW].mVolume;
             break;
           default:
             ss << "Unknown";
@@ -131,12 +148,72 @@ void QuoteTable::draw_cell(TableContext context, int ROW, int COL, int X, int Y,
     case CONTEXT_RC_RESIZE: 
       break;
     default:
-      cout << "unknown context" << context << endl;
+      cout << "unknown context" << int(context) << endl;
       break;
   }
 }
 
-void QuoteTable::setJobList(JobList* jlist) {
-  mpJobList = jlist;
+void QuoteTable::addSymbol(const string& symbol) {
+  Qinfo qinfo;
+  qinfo.mSymbol = symbol;
+  qinfo.mLastPrice  = 0;
+  qinfo.mLastSize   = 0;
+  qinfo.mBidPrice   = 0;
+  qinfo.mBidSize    = 0;
+  qinfo.mAskPrice   = 0;
+  qinfo.mAskSize    = 0;
+  qinfo.mVolume    = 0;
+  mQuoteList.push_back(qinfo);
+  cout << "adding " << symbol << " to table.  size is now " << mQuoteList.size() << endl;
+}
+
+int QuoteTable::findIndex(const string& symbol) {
+  for (auto it = mQuoteList.begin(); it != mQuoteList.end(); ++it) {
+    if (it->mSymbol == symbol)
+      return std::distance(mQuoteList.begin(), it);
+  }
+  return -1;
+}
+
+void QuoteTable::updateLastPrice(const string& symbol, const double price) {
+  auto idx = findIndex(symbol);
+  if (idx<0) return;
+  mQuoteList[idx].mLastPrice = price;
+}
+
+void QuoteTable::updateLastSize(const string& symbol, const int size) {
+  auto idx = findIndex(symbol);
+  if (idx<0) return;
+  mQuoteList[idx].mLastSize = size;
+}
+
+void QuoteTable::updateBidPrice(const string& symbol, const double price) {
+  auto idx = findIndex(symbol);
+  if (idx<0) return;
+  mQuoteList[idx].mBidPrice = price;
+}
+
+void QuoteTable::updateBidSize(const string& symbol, const int size) {
+  auto idx = findIndex(symbol);
+  if (idx<0) return;
+  mQuoteList[idx].mBidSize = size;
+}
+
+void QuoteTable::updateAskPrice(const string& symbol, const double price) {
+  auto idx = findIndex(symbol);
+  if (idx<0) return;
+  mQuoteList[idx].mAskPrice = price;
+}
+
+void QuoteTable::updateAskSize(const string& symbol, const int size) {
+  auto idx = findIndex(symbol);
+  if (idx<0) return;
+  mQuoteList[idx].mAskSize = size;
+}
+
+void QuoteTable::updateVolume(const string& symbol, const int size) {
+  auto idx = findIndex(symbol);
+  if (idx<0) return;
+  mQuoteList[idx].mVolume = size;
 }
 

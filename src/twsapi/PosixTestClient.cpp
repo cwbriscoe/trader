@@ -87,6 +87,8 @@ void PosixTestClient::processMessages()
 				return;
 			}
 			break;
+    default:
+      break;
 	}
 
 	if( m_sleepDeadline > 0) {

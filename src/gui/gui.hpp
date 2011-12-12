@@ -9,7 +9,8 @@
 #include <FL/Fl_Tabs.H>
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Input.H>
-extern Fl_Input *inputSymbol;
-#include <FL/Fl_Table.H>
+extern Fl_Input *gInputSymbol;
+#include "quote_table.hpp"
+extern cb::QuoteTable *gTableQuote;
 Fl_Double_Window* make_window();
 #endif

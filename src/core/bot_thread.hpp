@@ -6,7 +6,7 @@
 
 namespace cb {
 
-class BotThread : public Thread, Requester {
+class BotThread : public Thread, public Requester {
 public:
   BotThread();
   virtual ~BotThread();

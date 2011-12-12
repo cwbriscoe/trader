@@ -13,11 +13,12 @@ class BotThread;
 class EventThread;
 
 typedef std::map<string, long> SymbolMap;
+typedef std::map<long, string> TickIdMap;
 typedef std::multimap<long, Requester*> TickMap;
 
 typedef std::shared_ptr<BotThread> BotThreadPtr;
 
-class RouterThread : public Thread, Requester, Provider {
+class RouterThread : public Thread, public Requester, public Provider {
 public:
   RouterThread();
   virtual ~RouterThread();
@@ -46,6 +47,7 @@ private:
   BotThreadPtr mpBot;
 
   SymbolMap mSymbolMap;
+  TickIdMap mTickIdMap;
   TickMap mTickMap;
 
   RequestQueue mSendQueue;

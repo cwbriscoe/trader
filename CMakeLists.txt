@@ -34,6 +34,7 @@ endif()
 set(CMAKE_CXX_FLAGS_DEBUG "-O2 -march=native -fno-rtti -fomit-frame-pointer")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -march=native -fno-rtti -fomit-frame-pointer -DNDEBUG")
 add_definitions(-std=c++0x)
+#add_definitions(-stdlib=libc++)
 #set(CMAKE_EXE_LINKER_FLAGS "-s")
 
 if(MSVC)
@@ -43,13 +44,14 @@ if(MSVC)
   else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
   endif()
-elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
+else()
+  #elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
   # Update if necessary
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIB_USE_STD_STRING -D__GXX_EXPERIMENTAL_CXX0X__ -Wfatal-errors -Wall -Wextra -Wno-ignored-qualifiers -pedantic -pthread")
+  #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIB_USE_STD_STRING -D__GXX_EXPERIMENTAL_CXX0X__ -Wno-variadic-macros -Wuninitialized -Wcast-align -Wredundant-decls -Wno-unknown-pragmas -fdata-sections -ffunction-sections -Weffc++ -Wold-style-cast -Wstrict-overflow -Wsign-promo -Wabi -Wmissing-declarations -Wfatal-errors -Wall -Wextra -Wno-ignored-qualifiers -pedantic -pthread")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIB_USE_STD_STRING -D__GXX_EXPERIMENTAL_CXX0X__ -Wno-variadic-macros -Wuninitialized -Wcast-align -Wredundant-decls -Wno-unknown-pragmas -fdata-sections -ffunction-sections -Wold-style-cast -Wstrict-overflow -Wsign-promo -Wabi -Wmissing-declarations -Wfatal-errors -Wall -Wextra -Wno-ignored-qualifiers -pedantic -pthread")
 endif()
 
 set(CLIENT
-  src/twsapi/PosixTestClient.cpp
   src/twsapi/EClientSocketBase.cpp
   src/twsapi/EPosixClientSocket.cpp
   src/cb/thread.cpp
@@ -59,6 +61,7 @@ set(CLIENT
   src/core/bar_thread.cpp
   src/core/bot_thread.cpp
   src/core/event_thread.cpp
+  src/gui/quote_table.cpp
   src/gui/gui.cpp
   src/gui/main.cpp
 )

@@ -19,7 +19,7 @@ class Requester;
 struct Transaction;
 typedef shared_ptr<Transaction> TranPtr;
 struct Transaction {
-  Transaction() {
+  Transaction() : mTranId(0) {
     mTranId = mNextId++;
   }
   virtual ~Transaction() {};
@@ -34,7 +34,7 @@ struct Transaction {
 enum class OutRqst {Tick, Bar};
 
 struct Request : public Transaction {
-  Request(const OutRqst rqst) : Transaction(), mRqstType(rqst) {}
+  Request(const OutRqst rqst) : Transaction(), mpRequester(nullptr), mRqstType(rqst) {}
 
   Requester* mpRequester;
   OutRqst mRqstType;
@@ -62,8 +62,8 @@ struct TickRqst;
 typedef shared_ptr<TickRqst> TickRqstPtr;
 
 struct TickRqst : public Request {
-  TickRqst() : Request(OutRqst::Tick) {}
-  TickRqst(const OutRqst rqst) : Request(rqst) {}
+  TickRqst() : Request(OutRqst::Tick), mTickerId(0), mSymbol("") {}
+  TickRqst(const OutRqst rqst) : Request(rqst), mTickerId(0), mSymbol("") {}
 
   static TickRqstPtr create() {return TickRqstPtr(new TickRqst);}
 
@@ -75,7 +75,7 @@ struct BarRqst;
 typedef shared_ptr<BarRqst> BarRqstPtr;
 
 struct BarRqst : public TickRqst {
-  BarRqst() : TickRqst(OutRqst::Bar) {}
+  BarRqst() : TickRqst(OutRqst::Bar), mBarSize(0) {}
 
   static BarRqstPtr create() {return BarRqstPtr(new BarRqst);}
 
@@ -89,16 +89,17 @@ struct TickRslt;
 typedef shared_ptr<TickRslt> TickRsltPtr;
 
 struct TickRslt : public Result {
-  TickRslt(const InRslt rslt) : Result(rslt) {}
+  TickRslt(const InRslt rslt) : Result(rslt), mTickerId(0) {}
 
   long     mTickerId;
+  string   mSymbol;
 };
 
 struct TickPriceRslt;
 typedef shared_ptr<TickPriceRslt> TickPriceRsltPtr;
 
 struct TickPriceRslt : public TickRslt {
-  TickPriceRslt() : TickRslt(InRslt::TickPrice) {}
+  TickPriceRslt() : TickRslt(InRslt::TickPrice), mFieldType(0), mValue(0), mCanAutoExecute(false) {}
 
   static TickPriceRsltPtr create() {return TickPriceRsltPtr(new TickPriceRslt);}
 
@@ -111,7 +112,7 @@ struct TickSizeRslt;
 typedef shared_ptr<TickSizeRslt> TickSizeRsltPtr;
 
 struct TickSizeRslt : public TickRslt {
-  TickSizeRslt() : TickRslt(InRslt::TickSize) {}
+  TickSizeRslt() : TickRslt(InRslt::TickSize), mFieldType(0), mSize(0) {}
 
   static TickSizeRsltPtr create() {return TickSizeRsltPtr(new TickSizeRslt);}
 
@@ -123,7 +124,7 @@ struct TickStringRslt;
 typedef shared_ptr<TickStringRslt> TickStringRsltPtr;
 
 struct TickStringRslt : public TickRslt {
-  TickStringRslt() : TickRslt(InRslt::TickString) {}
+  TickStringRslt() : TickRslt(InRslt::TickString), mFieldType(0), mValue("") {}
 
   static TickStringRsltPtr create() {return TickStringRsltPtr(new TickStringRslt);}
 

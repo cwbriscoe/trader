@@ -8,10 +8,13 @@ comment {DO NOT MODIFY OUTSIDE OF FLUID!!!} {in_source in_header
 decl {\#include "callbacks.hpp"} {public global
 } 
 
+decl {using namespace cb;} {private local
+} 
+
 Function {make_window()} {open
 } {
   Fl_Window {} {open
-    xywh {368 144 930 670} type Double visible
+    xywh {368 144 930 670} type Double labeltype NORMAL_LABEL align 80 visible
   } {
     Fl_Tabs {} {open
       xywh {0 5 930 670}
@@ -20,13 +23,15 @@ Function {make_window()} {open
         label Quotes open
         xywh {5 30 925 645}
       } {
-        Fl_Input inputSymbol {
+        Fl_Input gInputSymbol {
           label {Symbol:}
           callback {input_symbol_entered(o);}
           xywh {65 40 95 25} when 8
         }
-        Fl_Table {} {open
+        Fl_Table gTableQuote {open selected
           xywh {10 70 915 595}
+          code0 {\#include "quote_table.hpp"}
+          class QuoteTable
         } {}
       }
     }

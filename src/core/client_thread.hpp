@@ -22,7 +22,7 @@ enum State {
 
 namespace cb {
 
-class ClientThread : public Thread, Provider, EWrapper {
+class ClientThread : public Thread, public Provider, EWrapper {
 public:
   ClientThread(Requester* ptr);
   virtual ~ClientThread();

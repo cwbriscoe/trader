@@ -69,6 +69,8 @@ void BotThread::processRecvQueue() {
     switch (tran->mRsltType) {
       case InRslt::TickPrice: {
         auto ptr = std::static_pointer_cast<TickPriceRslt>(tran);
+        auto p = ptr->mFieldType;
+        if (p!=4 && p!=1 && p!=2)
         cout << "id:" << ptr->mTickerId << " type:"
              << ptr->mFieldType << " price:" << ptr->mValue << " auto:"
              << ptr->mCanAutoExecute << endl;
@@ -76,12 +78,16 @@ void BotThread::processRecvQueue() {
       }
       case InRslt::TickSize: {
         auto ptr = std::static_pointer_cast<TickSizeRslt>(tran);
+        auto p = ptr->mFieldType;
+        if (p!=5 && p!=0 && p!=3 && p!=8)
         cout << "id:" << ptr->mTickerId << " type:" << ptr->mFieldType
              << " size:" << ptr->mSize << endl;
         break;
       }
       case InRslt::TickString: {
         auto ptr = std::static_pointer_cast<TickStringRslt>(tran);
+        auto p = ptr->mFieldType;
+        if (p!=45)
         cout << "id:" << ptr->mTickerId << " type:" << ptr->mFieldType
              << " string:" << ptr->mValue << endl;
         break;

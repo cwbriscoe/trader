@@ -58,7 +58,7 @@ void BarThread::processSendQueue() {
         break;
       }
       default:
-        cout << "barthread: invalid request - " << (int)tran->mRqstType << endl;
+        cout << "barthread: invalid request - " << int(tran->mRqstType) << endl;
         break;
     }
     mpRouter->send(tran);
